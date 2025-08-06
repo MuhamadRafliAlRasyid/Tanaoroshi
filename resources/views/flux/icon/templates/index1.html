@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sparepart System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+      <div class="text-center mb-6">
+        <img src="logo daihatsu.JPG" alt="Daihatsu Logo" class="mx-auto h-12">
+        <h1 class="text-xl font-bold text-gray-700 mt-2 text-center uppercase">
+          PT DAIHATSU DRIVENTRAIN MANUFACTURING INDONESIA
+        </h1>
+      </div>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="email" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" id="password" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" />
+        </div>
+        <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Login</button>
+      </form>
+      <div class="mt-4 text-center">
+        <a href="#" class="text-sm text-red-600 hover:underline">Lupa Password?</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD PAGE -->
+<div id="resetPasswordPage" class="hidden flex items-center justify-center min-h-screen">
+  <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+    <div class="text-center mb-6">
+      <img src="logo daihatsu.JPG" alt="Daihatsu Logo" class="mx-auto h-12">
+      <h1 class="text-xl font-bold text-gray-700 mt-2 text-center uppercase">
+        Reset Password
+      </h1>
+    </div>
+    <form id="resetPasswordForm" class="space-y-4">
+      <div>
+        <label for="resetEmail" class="block text-sm font-medium text-gray-700">Masukkan Email</label>
+        <input type="email" id="resetEmail" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500" />
+      </div>
+      <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Reset Password</button>
+    </form>
+    <div class="mt-4 text-center">
+      <a href="#" id="backToLogin" class="text-sm text-red-600 hover:underline">Kembali ke Login</a>
+    </div>
+  </div>
+</div>
+
+  <!-- DASHBOARD PAGE -->
+  <div id="dashboardPage" class="hidden">
+    <!-- Header -->
+    <header class="bg-red-600 text-white p-4 shadow-md flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <img src="logo ddmi.jpg" alt="Logo Daihatsu" class="h-10" />
+        <h1 class="text-lg font-bold uppercase">
+          PT DAIHATSU DRIVENTRAIN MANUFACTURING INDONESIA
+        </h1>
+      </div>
+      <button onclick="logout()" class="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200">Logout</button>
+    </header>
+
+    <!-- Konten Dashboard -->
+    <main class="p-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-6">Dashboard Sparepart System</h2>
+
+      <!-- Navigasi Menu -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <button onclick="navigateTo('dataSparepartPage')" class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Data Sparepart</h3>
+          <p class="text-sm text-gray-500">Lihat dan kelola data sparepart</p>
+        </button>
+        <button onclick="navigateTo('pengajuanSparepartPage')" class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Pengajuan Sparepart</h3>
+          <p class="text-sm text-gray-500">Ajukan permintaan sparepart baru</p>
+        </button>
+        <button onclick="navigateTo('riwayatPage')" class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Riwayat Penggunaan</h3>
+          <p class="text-sm text-gray-500">Lihat histori penggunaan sparepart</p>
+        </button>
+      </div>
+
+      <!-- Ringkasan Kategori -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <p class="text-sm text-gray-500">Part Baru</p>
+          <p class="text-2xl font-bold text-green-600">124</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <p class="text-sm text-gray-500">Part Bekas</p>
+          <p class="text-2xl font-bold text-yellow-500">68</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <p class="text-sm text-gray-500">Total Supplier</p>
+          <p class="text-2xl font-bold text-blue-600">12</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <p class="text-sm text-gray-500">PO Tertunda</p>
+          <p class="text-2xl font-bold text-red-600">3</p>
+        </div>
+      </div>
+
+      <!-- Grafik Dummy -->
+      <div class="bg-white p-6 rounded-xl shadow mb-6">
+        <h2 class="text-lg font-semibold mb-4">Grafik Pengambilan Sparepart (Bulanan)</h2>
+        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+          <p>Grafik akan ditampilkan di sini (Chart.js / Recharts)</p>
+        </div>
+      </div>
+
+      <!-- Tabel Riwayat -->
+      <div class="bg-white p-6 rounded-xl shadow mb-6">
+        <h2 class="text-lg font-semibold mb-4">Riwayat Pengambilan Sparepart</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto text-sm text-left text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 font-semibold">
+              <tr>
+                <th class="px-4 py-2">Tanggal</th>
+                <th class="px-4 py-2">Nama Karyawan</th>
+                <th class="px-4 py-2">ID Sparepart</th>
+                <th class="px-4 py-2">Nama Sparepart</th>
+                <th class="px-4 py-2">Jumlah</th>
+                <th class="px-4 py-2">Shift</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="px-4 py-2">2025-07-18</td>
+                <td class="px-4 py-2">Budi</td>
+                <td class="px-4 py-2">SP-00123</td>
+                <td class="px-4 py-2">Bearing 6203</td>
+                <td class="px-4 py-2">2</td>
+                <td class="px-4 py-2">Pagi</td>
+              </tr>
+              <tr class="border-b">
+                <td class="px-4 py-2">2025-07-18</td>
+                <td class="px-4 py-2">Andi</td>
+                <td class="px-4 py-2">SP-00244</td>
+                <td class="px-4 py-2">Fan Belt</td>
+                <td class="px-4 py-2">1</td>
+                <td class="px-4 py-2">Malam</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Stok Terkini -->
+      <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-lg font-semibold mb-4">Stok Terkini Sparepart (Top 5)</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto text-sm text-left text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 font-semibold">
+              <tr>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">Nama Sparepart</th>
+                <th class="px-4 py-2">Kategori</th>
+                <th class="px-4 py-2">Stok</th>
+                <th class="px-4 py-2">Lokasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="px-4 py-2">SP-00088</td>
+                <td class="px-4 py-2">Seal Ring</td>
+                <td class="px-4 py-2">Part Baru</td>
+                <td class="px-4 py-2">120</td>
+                <td class="px-4 py-2">Rak A1</td>
+              </tr>
+              <tr class="border-b">
+                <td class="px-4 py-2">SP-00112</td>
+                <td class="px-4 py-2">Kabel Power</td>
+                <td class="px-4 py-2">Part Bekas</td>
+                <td class="px-4 py-2">42</td>
+                <td class="px-4 py-2">Rak C3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 text-sm py-6">
+      &copy; 2025 PT Daihatsu Drivetrain Manufacturing Indonesia. All rights reserved.
+    </footer>
+  </div>
+
+   <!-- PAGE: Data Sparepart -->
+  <div id="dataSparepartPage" class="hidden p-6">
+    <button onclick="navigateTo('dashboardPage')" class="mb-4 text-sm text-blue-600 hover:underline">← Kembali ke Dashboard</button>
+    <h2 class="text-xl font-bold mb-4">Data Sparepart</h2>
+    <form id="formTambahSparepart" class="space-y-4 mb-6">
+      <input type="text" id="sparepartId" placeholder="ID Sparepart" required class="w-full border px-4 py-2 rounded-lg"/>
+      <input type="text" id="sparepartName" placeholder="Nama Sparepart" required class="w-full border px-4 py-2 rounded-lg"/>
+      <input type="text" id="sparepartKategori" placeholder="Kategori" required class="w-full border px-4 py-2 rounded-lg"/>
+      <input type="number" id="sparepartStok" placeholder="Stok" required class="w-full border px-4 py-2 rounded-lg"/>
+      <input type="text" id="sparepartLokasi" placeholder="Lokasi" required class="w-full border px-4 py-2 rounded-lg"/>
+      <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Tambah Sparepart</button>
+    </form>
+    <table class="min-w-full text-sm text-gray-600">
+      <thead class="bg-gray-100">
+        <tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Nama</th><th class="px-4 py-2">Kategori</th><th class="px-4 py-2">Stok</th><th class="px-4 py-2">Lokasi</th></tr>
+      </thead>
+      <tbody id="tabelSparepartBody"></tbody>
+    </table>
+  </div>
+
+  <!-- KATALOG SPAREPART -->
+  <div id="katalogPage" class="hidden p-6">
+    <button onclick="navigateTo('dashboardPage')" class="mb-4 text-blue-600 hover:underline">← Kembali</button>
+    <h2 class="text-xl font-bold mb-6">Katalog Sparepart</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <img src="images/sparepart1.jpg" alt="Sparepart A" class="w-full h-40 object-cover" />
+        <div class="p-4"><h2 class="text-lg font-semibold">Sparepart A</h2><p class="text-sm text-gray-500">Kode: SP001</p><p class="text-gray-600 mt-2">Deskripsi singkat tentang sparepart A.</p></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <img src="images/sparepart2.jpg" alt="Sparepart B" class="w-full h-40 object-cover" />
+        <div class="p-4"><h2 class="text-lg font-semibold">Sparepart B</h2><p class="text-sm text-gray-500">Kode: SP002</p><p class="text-gray-600 mt-2">Deskripsi singkat tentang sparepart B.</p></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PAGE: Pengajuan Sparepart -->
+  <div id="pengajuanSparepartPage" class="hidden p-6">
+    <button onclick="navigateTo('dashboardPage')" class="mb-4 text-sm text-blue-600 hover:underline">← Kembali ke Dashboard</button>
+    <h2 class="text-xl font-bold text-gray-700">Pengajuan Sparepart (Coming Soon)</h2>
+  </div>
+
+  <!-- PAGE: Riwayat Penggunaan -->
+  <div id="riwayatPage" class="hidden p-6">
+    <button onclick="navigateTo('dashboardPage')" class="mb-4 text-sm text-blue-600 hover:underline">← Kembali ke Dashboard</button>
+    <h2 class="text-xl font-bold text-gray-700">Riwayat Penggunaan (Coming Soon)</h2>
+  </div>
+
+
+  <script>
+  // --- Element Login ---
+  const formLogin = document.getElementById("loginForm");
+  const email = document.getElementById("email");
+  const password = document.getElementById("password");
+
+  formLogin.addEventListener("submit", e => {
+    e.preventDefault();
+    if (email.value === "admin@ddmi.co.id" && password.value === "123456") {
+      showPage("dashboardPage");
+    } else {
+      alert("Email atau Password salah");
+    }
+  });
+
+  function logout() {
+    email.value = password.value = "";
+    showPage("loginPage");
+  }
+
+  // --- Navigasi Antar Halaman ---
+  function navigateTo(pageId) {
+    ["dashboardPage", "dataSparepartPage", "pengajuanSparepartPage", "riwayatPage", "katalogPage"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    });
+    const target = document.getElementById(pageId);
+    if (target) target.classList.remove("hidden");
+  }
+
+  function showPage(pageId) {
+    document.getElementById("loginPage").classList.add("hidden");
+    navigateTo(pageId);
+  }
+
+  // --- Form Data Sparepart ---
+  const formSparepart = document.getElementById("formTambahSparepart");
+  const tbodySparepart = document.getElementById("tabelSparepartBody");
+
+  if (formSparepart) {
+    formSparepart.addEventListener("submit", e => {
+      e.preventDefault();
+      const d = {
+        id: sparepartId.value,
+        name: sparepartName.value,
+        kategori: sparepartKategori.value,
+        stok: sparepartStok.value,
+        lokasi: sparepartLokasi.value
+      };
+      const tr = `<tr class="border-b">
+        <td class="px-4 py-2">${d.id}</td>
+        <td class="px-4 py-2">${d.name}</td>
+        <td class="px-4 py-2">${d.kategori}</td>
+        <td class="px-4 py-2">${d.stok}</td>
+        <td class="px-4 py-2">${d.lokasi}</td>
+      </tr>`;
+      tbodySparepart.insertAdjacentHTML("beforeend", tr);
+      formSparepart.reset();
+    });
+  }
+
+  // --- RESET PASSWORD ---
+  const loginPage = document.getElementById("loginPage");
+  const resetPasswordPage = document.getElementById("resetPasswordPage");
+  const forgotPasswordLink = document.querySelector("a[href='#']");
+  const backToLogin = document.getElementById("backToLogin");
+  const resetPasswordForm = document.getElementById("resetPasswordForm");
+
+  const users = {
+    "admin@ddmi.co.id": "123456",
+    "user1@example.com": "password123",
+    "user2@example.com": "secretpass"
+  };
+
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginPage.classList.add("hidden");
+      resetPasswordPage.classList.remove("hidden");
+    });
+  }
+
+  if (backToLogin) {
+    backToLogin.addEventListener("click", (e) => {
+      e.preventDefault();
+      resetPasswordPage.classList.add("hidden");
+      loginPage.classList.remove("hidden");
+    });
+  }
+
+  if (resetPasswordForm) {
+    resetPasswordForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const resetEmail = document.getElementById("resetEmail").value.trim();
+
+      if (users[resetEmail]) {
+        const newPassword = "daihatsu123"; // Simulasi password baru
+        users[resetEmail] = newPassword;
+        alert(`Password baru Anda: ${newPassword}`);
+        resetPasswordPage.classList.add("hidden");
+        loginPage.classList.remove("hidden");
+      } else {
+        alert("Email tidak ditemukan!");
+      }
+    });
+  }
+</script>

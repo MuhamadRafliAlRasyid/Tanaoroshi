@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sparepart System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+      <div class="text-center mb-6">
+        <img src="logo daihatsu.JPG" alt="Daihatsu Logo" class="mx-auto h-12">
+        <h1 class="text-xl font-bold text-gray-700 mt-2">
+          PT DAIHATSU DRIVENTRAIN MANUFACTURING INDONESIA
+        </h1>
+      </div>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="email" name="email" required
+            class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" id="password" name="password" required
+            class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+        </div>
+        <button type="submit"
+          class="w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200">
+          Login
+        </button>
+      </form>
+      <div class="mt-4 text-center">
+        <a href="#" class="text-sm text-red-600 hover:underline">Lupa Password?</a>
+      </div>
+    </div>
+  </div>
+
+<!-- DASHBOARD PAGE -->
+<div id="dashboardPage" class="hidden p-6">
+  <h1 class="text-2xl font-bold text-center mb-6">Dashboard Suku Cadang</h1>
+
+<!-- Navbar Dashboard -->
+<div class="flex items-center justify-between mb-6">
+  <!-- Tombol garis tiga -->
+  <button id="menuButton" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+    <!-- Icon Hamburger -->
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+
+  <!-- Search Bar -->
+  <div class="relative w-full max-w-xs ml-4">
+    <input type="text" placeholder="Cari Sparepart..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-400">
+    <div class="absolute left-3 top-2.5 text-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+  </div>
+</div>
+
+  <!-- Ringkasan -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl shadow text-center">
+      <p class="text-sm text-gray-500">Part Baru</p>
+      <p class="text-2xl font-bold text-green-600">124</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow text-center">
+      <p class="text-sm text-gray-500">Part Bekas</p>
+      <p class="text-2xl font-bold text-yellow-500">68</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow text-center">
+      <p class="text-sm text-gray-500">Total Supplier</p>
+      <p class="text-2xl font-bold text-blue-600">12</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow text-center">
+      <p class="text-sm text-gray-500">PO Tertunda</p>
+      <p class="text-2xl font-bold text-red-600">3</p>
+    </div>
+  </div>
+
+  <!-- Grafik Dummy -->
+  <div class="bg-white p-6 rounded-xl shadow mb-6">
+    <h2 class="text-lg font-semibold mb-4">Grafik Pengambilan Sparepart (Bulanan)</h2>
+    <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+      <p>Grafik akan ditampilkan di sini (gunakan Chart.js / Recharts)</p>
+    </div>
+  </div>
+
+  <!-- Riwayat Pengambilan -->
+  <div class="bg-white p-6 rounded-xl shadow mb-6">
+    <h2 class="text-lg font-semibold mb-4">Riwayat Pengambilan Sparepart</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-left text-gray-600">
+        <thead class="bg-gray-100 text-gray-700 font-semibold">
+          <tr>
+            <th class="px-4 py-2">Tanggal</th>
+            <th class="px-4 py-2">Nama Karyawan</th>
+            <th class="px-4 py-2">ID Sparepart</th>
+            <th class="px-4 py-2">Nama Sparepart</th>
+            <th class="px-4 py-2">Jumlah</th>
+            <th class="px-4 py-2">Shift</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="px-4 py-2">2025-07-18</td>
+            <td class="px-4 py-2">Budi</td>
+            <td class="px-4 py-2">SP-00123</td>
+            <td class="px-4 py-2">Bearing 6203</td>
+            <td class="px-4 py-2">2</td>
+            <td class="px-4 py-2">Pagi</td>
+          </tr>
+          <tr class="border-b">
+            <td class="px-4 py-2">2025-07-18</td>
+            <td class="px-4 py-2">Andi</td>
+            <td class="px-4 py-2">SP-00244</td>
+            <td class="px-4 py-2">Fan Belt</td>
+            <td class="px-4 py-2">1</td>
+            <td class="px-4 py-2">Malam</td>
+          </tr>
+          <!-- Tambah baris riwayat lainnya di sini -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stok Terkini -->
+  <div class="bg-white p-6 rounded-xl shadow">
+    <h2 class="text-lg font-semibold mb-4">Stok Terkini Sparepart (Top 5)</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-left text-gray-600">
+        <thead class="bg-gray-100 text-gray-700 font-semibold">
+          <tr>
+            <th class="px-4 py-2">ID</th>
+            <th class="px-4 py-2">Nama Sparepart</th>
+            <th class="px-4 py-2">Kategori</th>
+            <th class="px-4 py-2">Stok</th>
+            <th class="px-4 py-2">Lokasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="px-4 py-2">SP-00088</td>
+            <td class="px-4 py-2">Seal Ring</td>
+            <td class="px-4 py-2">Part Baru</td>
+            <td class="px-4 py-2">120</td>
+            <td class="px-4 py-2">Rak A1</td>
+          </tr>
+          <tr class="border-b">
+            <td class="px-4 py-2">SP-00112</td>
+            <td class="px-4 py-2">Kabel Power</td>
+            <td class="px-4 py-2">Part Bekas</td>
+            <td class="px-4 py-2">42</td>
+            <td class="px-4 py-2">Rak C3</td>
+          </tr>
+          <!-- Tambah baris stok lainnya di sini -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+  <!-- Navigasi (Tampilkan hanya setelah login) -->
+<div id="navBar" class="hidden fixed bottom-4 left-0 right-0 flex justify-center gap-4 z-50">
+  <button onclick="showPage('dashboardPage')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Dashboard</button>
+  <button onclick="showPage('katalogPage')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Lihat Katalog</button>
+  <button onclick="logout()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">Logout</button>
+</div>
+
+
+  <!-- KATALOG PAGE -->
+  <div id="katalogPage" class="hidden p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Katalog Suku Cadang</h1>
+      <button onclick="showPage('dashboardPage')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Kembali</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition">
+        <img src="gear motor.jpg" alt="Gear" class="h-24 mx-auto mb-2" />
+        <h2 class="text-lg font-semibold text-center">Gear Mesin</h2>
+        <p class="text-center text-sm text-gray-500">Kode: G123</p>  
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition">
+        <img src="belt.jpg" alt="Belt" class="h-24 mx-auto mb-2" />
+        <h2 class="text-lg font-semibold text-center">Timing Belt</h2>
+        <p class="text-center text-sm text-gray-500">Kode: B456</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition">
+        <img src="filter.png" alt="Filter" class="h-24 mx-auto mb-2" />
+        <h2 class="text-lg font-semibold text-center">Oil Filter</h2>
+        <p class="text-center text-sm text-gray-500">Kode: F789</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      // Login sederhana tanpa backend
+      if (email === "admin@ddmi.co.id" && password === "123456") {
+        showPage("dashboardPage");
+      } else {
+        alert("Email atau Password salah");
+      }
+    });
+
+    function showPage(pageId) {
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.add("hidden");
+      document.getElementById("katalogPage").classList.add("hidden");
+      document.getElementById(pageId).classList.remove("hidden");
+    }
+
+    function logout() {
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+      showPage("loginPage");
+    }
+  </script>
+</body>
+</html>
