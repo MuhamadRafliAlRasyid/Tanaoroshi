@@ -42,7 +42,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
             'bagian_id' => 'nullable|exists:bagian,id',
-            'role' => 'required|in:admin,user,spv',
+            'role' => 'required|in:super,admin,karyawan',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -85,7 +85,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6',
             'bagian_id' => 'nullable|exists:bagian,id',
-            'role' => 'required|in:admin,user,spv',
+            'role' => 'required|in:super,admin,karyawan',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
