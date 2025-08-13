@@ -20,6 +20,6 @@ class Bagian extends Model
 
     public function pengambilanBarangs()
     {
-        return $this->hasMany(pengambilan_barang::class);
+        return $this->hasMany(pengambilansparepart::class);
     }
 }

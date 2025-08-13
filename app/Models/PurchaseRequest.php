@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
 
-class purchase_requests extends Model
+class purchaserequest extends Model
 {
     use HasFactory;
+
+    protected $table = 'purchase_requests';
 
     protected $fillable = [
         'user_id',
@@ -32,6 +33,6 @@ class purchase_requests extends Model
 
     public function logs()
     {
-        return $this->hasMany(requestlogs::class);
+        return $this->hasMany(RequestLog::class);
     }
 }

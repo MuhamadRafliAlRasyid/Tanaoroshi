@@ -3,10 +3,22 @@
 use Livewire\Volt\Volt;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BagianController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\SparepartController;
+use App\Http\Controllers\SuperDashboardController;
+use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\PengambilanSparepartController;
-use App\Http\Controllers\TanaoroshiPartController;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group that
+| contains the "web" middleware group by default.
+|
+*/
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,59 +31,71 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Protected Routes
+// Protected Routes with Auth Middleware
 Route::middleware(['auth'])->group(function () {
-    Route::get('/super/dashboard', function () {
-        return view('super.kepala');
-    });
+    // Dashboard Routes
+    Route::get('/super/dashboard', [SuperDashboardController::class, 'index'])->name('super.dashboard');
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
-    });
+    })->name('admin.dashboard');
     Route::get('/karyawan/dashboard', function () {
         return view('karyawan.gudang');
+    })->name('karyawan.dashboard');
+
+    // Sparepart Routes
+    Route::prefix('spareparts')->name('spareparts.')->group(function () {
+        Route::get('/', [SparepartController::class, 'index'])->name('index');
+        Route::get('/create', [SparepartController::class, 'create'])->name('create');
+        Route::post('/', [SparepartController::class, 'store'])->name('store');
+        Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
     });
-});
 
-// Sparepart Routes
-Route::prefix('spareparts')->name('spareparts.')->middleware('auth')->group(function () {
-    Route::get('/', [SparepartController::class, 'index'])->name('index');
-    Route::get('/create', [SparepartController::class, 'create'])->name('create');
-    Route::post('/', [SparepartController::class, 'store'])->name('store');
-    Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
-    Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
-});
+    // Pengambilan Sparepart Routes
+    Route::prefix('pengambilan')->name('pengambilan.')->group(function () {
+        Route::get('/', [PengambilanSparepartController::class, 'index'])->name('index');
+        Route::get('/create', [PengambilanSparepartController::class, 'create'])->name('create');
+        Route::post('/', [PengambilanSparepartController::class, 'store'])->name('store');
+        Route::get('/{id}', [PengambilanSparepartController::class, 'show'])->name('show');
+        Route::get('/{pengambilanSparepart}/edit', [PengambilanSparepartController::class, 'edit'])->name('edit');
+        Route::put('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'update'])->name('update');
+        Route::delete('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'destroy'])->name('destroy');
+    });
 
-// Pengambilan Sparepart Routes
-Route::prefix('pengambilan')->name('pengambilan.')->middleware('auth')->group(function () {
-    Route::get('/', [PengambilanSparepartController::class, 'index'])->name('index');
-    Route::get('/create', [PengambilanSparepartController::class, 'create'])->name('create');
-    Route::post('/', [PengambilanSparepartController::class, 'store'])->name('store');
-    Route::get('/{id}', [PengambilanSparepartController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [PengambilanSparepartController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [PengambilanSparepartController::class, 'update'])->name('update');
-    Route::delete('/{id}', [PengambilanSparepartController::class, 'destroy'])->name('destroy');
-});
+    // Purchase Request Routes
+    Route::prefix('purchase-requests')->name('purchase_requests.')->group(function () {
+        Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
+        Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
+        Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
+        Route::get('/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->name('show');
+        Route::get('/{purchaseRequest}/edit', [PurchaseRequestController::class, 'edit'])->name('edit');
+        Route::put('/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->name('update');
+        Route::delete('/{purchaseRequest}', [PurchaseRequestController::class, 'destroy'])->name('destroy');
+        Route::post('/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve'])->name('approve');
+        Route::post('/{purchaseRequest}/reject', [PurchaseRequestController::class, 'reject'])->name('reject');
+    });
 
-// Tanaoroshi Sparepart Routes
-Route::prefix('tanaoroshi')->name('tanaoroshi.')->middleware('auth')->group(function () {
-    Route::get('/', [TanaoroshiPartController::class, 'index'])->name('index');
-    Route::get('/create', [TanaoroshiPartController::class, 'create'])->name('create');
-    Route::post('/', [TanaoroshiPartController::class, 'store'])->name('store');
-    Route::get('/{id}', [TanaoroshiPartController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [TanaoroshiPartController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [TanaoroshiPartController::class, 'update'])->name('update');
-    Route::delete('/{id}', [TanaoroshiPartController::class, 'destroy'])->name('destroy');
-});
+    // User (Admin) Routes
+    Route::prefix('anggota')->name('admin.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}', [UserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
 
-// Anggota Routes (Admin)
-Route::prefix('anggota')->name('admin.')->middleware('auth')->group(function () {
-    Route::get('/', [UserController::class, 'index'])->name('index');
-    Route::get('/create', [UserController::class, 'create'])->name('create');
-    Route::post('/', [UserController::class, 'store'])->name('store');
-    Route::get('/{user}', [UserController::class, 'show'])->name('show');
-    Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
-    Route::put('/{user}', [UserController::class, 'update'])->name('update');
-    Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    // Bagian Routes
+    Route::prefix('bagian')->name('bagian.')->group(function () {
+        Route::get('/', [BagianController::class, 'index'])->name('index');
+        Route::get('/create', [BagianController::class, 'create'])->name('create');
+        Route::post('/', [BagianController::class, 'store'])->name('store');
+        Route::get('/{id}', [BagianController::class, 'show'])->name('show');
+        Route::get('/{bagian}/edit', [BagianController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [BagianController::class, 'update'])->name('update');
+        Route::delete('/{bagian}', [BagianController::class, 'destroy'])->name('destroy');
+    });
 });

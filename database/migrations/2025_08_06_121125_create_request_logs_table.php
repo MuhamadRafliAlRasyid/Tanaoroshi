@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('request_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('purchase_request_id')->constrained()->onDelete('cascade');
+            $table->foreignId('purchaserequest_id')->constrained()->onDelete('cascade');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->enum('action', ['created', 'approved', 'rejected', 'ordered']);
             $table->text('notes')->nullable();

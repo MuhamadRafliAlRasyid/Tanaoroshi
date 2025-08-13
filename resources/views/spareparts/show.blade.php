@@ -1,136 +1,93 @@
 @extends('layouts.app')
 
-@section('title', 'Create Sparepart')
+@section('title', 'Detail Sparepart')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="w-full max-w-2xl">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Tambah Sparepart Baru</h2>
+    <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
+        <div class="w-full max-w-3xl">
+            <div class="bg-white shadow-xl rounded-lg p-6">
+                <h2 class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-2 border-indigo-200 pb-2">
+                    <i class="fas fa-info-circle mr-2"></i> Detail Sparepart
+                </h2>
 
-            @if ($errors->any())
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('spareparts.store') }}" method="POST" enctype="multipart/form-data"
-                class="bg-white p-6 rounded-lg shadow-lg space-y-4">
-                @csrf
-
-                <div class="form-group">
-                    <label for="nama_part" class="block text-sm font-medium text-gray-700">Nama Part</label>
-                    <input type="text" id="nama_part" name="nama_part" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="model" class="block text-sm font-medium text-gray-700">Model</label>
-                    <input type="text" id="model" name="model" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="merk" class="block text-sm font-medium text-gray-700">Merk</label>
-                    <input type="text" id="merk" name="merk" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="jumlah_baru" class="block text-sm font-medium text-gray-700">Jumlah Baru</label>
-                    <input type="number" id="jumlah_baru" name="jumlah_baru" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="jumlah_bekas" class="block text-sm font-medium text-gray-700">Jumlah Bekas</label>
-                    <input type="number" id="jumlah_bekas" name="jumlah_bekas" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="supplier" class="block text-sm font-medium text-gray-700">Supplier</label>
-                    <input type="text" id="supplier" name="supplier" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="patokan_harga" class="block text-sm font-medium text-gray-700">Patokan Harga</label>
-                    <input type="number" step="0.01" id="patokan_harga" name="patokan_harga" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
-                    <input type="number" step="0.01" id="total" name="total" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="ruk_no" class="block text-sm font-medium text-gray-700">RUK No</label>
-                    <input type="text" id="ruk_no" name="ruk_no" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="purchase_date" class="block text-sm font-medium text-gray-700">Purchase Date</label>
-                    <input type="date" id="purchase_date" name="purchase_date" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="delivery_date" class="block text-sm font-medium text-gray-700">Delivery Date</label>
-                    <input type="date" id="delivery_date" name="delivery_date" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-tag mr-2"></i>Nama Part:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->nama_part }}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-cogs mr-2"></i>Model:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->model }}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-trademark mr-2"></i>Merk:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->merk }}</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-box-open mr-2"></i>Jumlah Baru:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->jumlah_baru }}</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-box mr-2"></i>Jumlah Bekas:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->jumlah_bekas }}</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-truck mr-2"></i>Supplier:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->supplier }}</p>
+                    </div>
+                    <div class="bg-teal-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-dollar-sign mr-2"></i>Patokan Harga:</p>
+                        <p class="text-lg text-gray-800">{{ number_format($sparepart->patokan_harga, 2) }}</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-money-bill-wave mr-2"></i>Total:</p>
+                        <p class="text-lg text-gray-800">{{ number_format($sparepart->total, 2) }}</p>
+                    </div>
+                    <div class="bg-pink-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-warehouse mr-2"></i>RUK No:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->ruk_no }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-calendar-alt mr-2"></i>Purchase Date:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->purchase_date ?: 'Tidak ada' }}</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-truck-loading mr-2"></i>Delivery Date:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->delivery_date ?: 'Tidak ada' }}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-file-alt mr-2"></i>PO Number:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->po_number }}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-map-marker-alt mr-2"></i>Titik Pesanan:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->titik_pesanan }}</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-shopping-cart mr-2"></i>Jumlah Pesanan:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->jumlah_pesanan }}</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-check-circle mr-2"></i>Cek:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->cek ? 'Ya' : 'Tidak' }}</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-user mr-2"></i>PIC:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->pic ?: 'Tidak ada' }}</p>
+                    </div>
+                    <div class="bg-teal-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-qrcode mr-2"></i>QR Code:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->qr_code ?? 'Tidak ada' }}</p>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="po_number" class="block text-sm font-medium text-gray-700">PO Number</label>
-                    <input type="text" id="po_number" name="po_number" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <div class="mt-6 text-center">
+                    <a href="{{ route('spareparts.index') }}"
+                        class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali
+                    </a>
                 </div>
-
-                <div class="form-group">
-                    <label for="titik_pesanan" class="block text-sm font-medium text-gray-700">Titik Pesanan</label>
-                    <input type="text" id="titik_pesanan" name="titik_pesanan" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="jumlah_pesanan" class="block text-sm font-medium text-gray-700">Jumlah Pesanan</label>
-                    <input type="number" id="jumlah_pesanan" name="jumlah_pesanan" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="cek" class="block text-sm font-medium text-gray-700">Cek</label>
-                    <select id="cek" name="cek" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                        <option value="1">Ya</option>
-                        <option value="0">Tidak</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="pic" class="block text-sm font-medium text-gray-700">PIC</label>
-                    <input type="text" id="pic" name="pic" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <div class="form-group">
-                    <label for="qr_code" class="block text-sm font-medium text-gray-700">QR Code (Opsional)</label>
-                    <input type="text" id="qr_code" name="qr_code"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                </div>
-
-                <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md py-2 transition duration-200">
-                    Simpan
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 @endsection

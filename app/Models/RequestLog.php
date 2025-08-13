@@ -2,26 +2,28 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class RequestLogs extends Model
+class RequestLog extends Model
 {
     use HasFactory;
 
+    protected $table = 'request_logs';
+
     protected $fillable = [
-        'purchase_requests_id',
+        'purchaserequest_id',
         'approved_by',
         'action',
-        'notes'
+        'notes',
     ];
 
     public function purchaseRequest()
     {
-        return $this->belongsTo(purchase_requests::class);
+        return $this->belongsTo(PurchaseRequest::class);
     }
 
-    public function approver()
+    public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }

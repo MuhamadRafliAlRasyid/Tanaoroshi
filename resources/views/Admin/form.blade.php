@@ -1,89 +1,95 @@
-<!-- Profile Information -->
-<section aria-label="Profile Information" class="border border-gray-300 rounded-lg p-6 max-w-4xl w-full">
-    <h2 class="font-semibold text-gray-800 mb-4">Profile Information</h2>
+@extends('layouts.app')
 
-    <div class="flex items-center gap-4 mb-4">
-        <img id="current_photo" alt="User profile" class="w-16 h-16 rounded-md object-cover"
-            src="{{ isset($user) && $user->profile_photo_path ? asset('img/profile_photo/' . $user->profile_photo_path) : asset('assets/avatar.png') }}" />
+@section('title', 'Profile Information')
 
-        <label for="profile_photo"
-            class="cursor-pointer flex items-center gap-1 border border-gray-300 rounded-md px-3 py-1 text-xs text-gray-700 hover:bg-gray-100">
-            Ganti Foto
-            <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" stroke-linecap="round"
-                    stroke-linejoin="round" />
-            </svg>
-        </label>
-        <input id="profile_photo" name="profile_photo" type="file" class="hidden" accept="image/*">
-    </div>
+@section('content')
+    <main class="p-6 flex flex-col items-center space-y-8">
+        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 border-b pb-2">Profile Information</h2>
 
-    <!-- Name -->
-    <div>
-        <label class="block font-semibold mb-1" for="name">Nama</label>
-        <input id="name" name="name" type="text" required value="{{ old('name', $user->name ?? '') }}"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-    </div>
+            <!-- Foto Profil -->
+            <div class="flex items-center gap-6 mb-6">
+                <img id="current_photo" alt="User profile" class="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                    src="{{ isset($user) && $user->profile_photo_path ? asset('img/profile_photo/' . $user->profile_photo_path) : asset('assets/avatar.png') }}" />
+                <label for="profile_photo"
+                    class="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 cursor-pointer transition">
+                    <i class="fas fa-upload"></i> Ganti Foto
+                </label>
+                <input id="profile_photo" name="profile_photo" type="file" class="hidden" accept="image/*">
+            </div>
 
-    <!-- Email -->
-    <div>
-        <label class="block font-semibold mb-1" for="email">Email</label>
-        <input id="email" name="email" type="email" required value="{{ old('email', $user->email ?? '') }}"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-    </div>
+            <!-- Form Input -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Nama -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input id="name" name="name" type="text" required
+                        value="{{ old('name', $user->name ?? '') }}"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
 
-    <!-- Password -->
-    <div>
-        <label class="block font-semibold mb-1" for="password">
-            Password {{ isset($user) ? '(Kosongkan jika tidak diubah)' : '' }}
-        </label>
-        <input id="password" name="password" type="password"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-    </div>
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input id="email" name="email" type="email" required
+                        value="{{ old('email', $user->email ?? '') }}"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
 
-    @if (auth()->user()->role === 'admin')
-        <!-- Bagian (Hanya admin yang bisa lihat dan ubah) -->
-        <div>
-            <label class="block font-semibold mb-1" for="bagian_id">Bagian</label>
-            <select id="bagian_id" name="bagian_id"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                <option value="">- Pilih Bagian -</option>
-                @foreach ($bagians as $bagian)
-                    <option value="{{ $bagian->id }}"
-                        {{ old('bagian_id', $user->bagian_id ?? '') == $bagian->id ? 'selected' : '' }}>
-                        {{ $bagian->nama }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password
+                        {{ isset($user) ? '(Kosongkan jika tidak diubah)' : '' }}</label>
+                    <input id="password" name="password" type="password"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
 
-        <!-- Role (Hanya admin yang bisa ubah) -->
-        <div>
-            <label class="block font-semibold mb-1" for="role">Role</label>
-            <select id="role" name="role" required
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                @foreach (['admin', 'karyawan', 'super'] as $role)
-                    <option value="{{ $role }}" {{ old('role', $user->role ?? '') == $role ? 'selected' : '' }}>
-                        {{ ucfirst($role) }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-    @endif
-</section>
+                @if (auth()->user()->role === 'admin')
+                    <!-- Bagian -->
+                    <div>
+                        <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                        <select id="bagian_id" name="bagian_id"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">- Pilih Bagian -</option>
+                            @foreach ($bagians as $bagian)
+                                <option value="{{ $bagian->id }}"
+                                    {{ old('bagian_id', $user->bagian_id ?? '') == $bagian->id ? 'selected' : '' }}>
+                                    {{ $bagian->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-<script>
-    document.getElementById('profile_photo').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        const preview = document.getElementById('current_photo');
+                    <!-- Role -->
+                    <div>
+                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="role" name="role" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach (['admin', 'karyawan', 'super'] as $role)
+                                <option value="{{ $role }}"
+                                    {{ old('role', $user->role ?? '') == $role ? 'selected' : '' }}>
+                                    {{ ucfirst($role) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+            </div>
+        </section>
+    </main>
 
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
+    <script>
+        document.getElementById('profile_photo').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('current_photo');
 
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-            };
-
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+@endsection

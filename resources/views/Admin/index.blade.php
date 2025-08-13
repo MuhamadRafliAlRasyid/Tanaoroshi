@@ -1,49 +1,64 @@
 @extends('layouts.app')
 
+@section('title', 'Daftar User')
+
 @section('content')
-    <main class="p-6 flex flex-col items-center space-y-12">
-        <form action="{{ route('admin.create') }}" method="get">
-            <button class="bg-[#1e53e4] text-white text-lg px-16 py-6 w-full max-w-md" type="submit">
-                Tambah User
+    <main class="p-6 flex flex-col items-center space-y-8">
+        <!-- Tombol Tambah User -->
+        <form action="{{ route('admin.create') }}" method="get" class="w-full max-w-4xl">
+            <button type="submit"
+                class="bg-[#1e53e4] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md hover:bg-[#1749c6] transition duration-200 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i> Tambah User
             </button>
         </form>
 
-        <section class="bg-[#1e49e2] text-white w-full max-w-4xl rounded-md shadow-lg overflow-x-auto">
-            <h1 class="text-3xl font-normal px-6 pt-6 pb-4 text-center">Daftar User</h1>
-            <ul class="min-w-[800px]">
-                <li
-                    class="flex justify-between items-center border-b border-white border-opacity-50 py-3 font-semibold text-white bg-[#1641c2] sticky top-0 z-10">
-                    <div class="w-1/12 text-center text-lg">No</div>
-                    <div class="w-2/12 text-lg pl-3">Nama</div>
-                    <div class="w-3/12 text-lg pl-3">Email</div>
-                    <div class="w-2/12 text-center text-lg">Bagian</div>
-                    <div class="w-2/12 text-center text-lg">Role</div>
-                    <div class="w-2/12 text-center text-lg">Aksi</div>
-                </li>
-                @foreach ($users as $index => $user)
-                    <li
-                        class="flex justify-between items-center border-b border-white border-opacity-30 py-3 hover:bg-[#2a5ae8] transition">
-                        <div class="w-1/12 text-center text-base">{{ $index + 1 }}</div>
-                        <div class="w-2/12 text-base pl-3 break-words">{{ $user->name }}</div>
-                        <div class="w-3/12 text-base pl-3 break-words">{{ $user->email }}</div>
-                        <div class="w-2/12 text-center text-base">{{ $user->bagian->nama ?? '-' }}</div>
-                        <div class="w-2/12 text-center text-base capitalize">{{ $user->role }}</div>
-                        <div class="w-2/12 flex space-x-3 justify-center">
-                            <a href="{{ route('admin.edit', $user->id) }}"
-                                class="bg-white text-[#1e53e4] px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-gray-100 transition">Edit</a>
-                            <form action="{{ route('admin.destroy', $user->id) }}" method="POST"
-                                onsubmit="return confirm('Yakin hapus user ini?');" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="bg-red-600 px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-red-700 transition">
-                                    Hapus
-                                </button>
-                            </form>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
+        <!-- Tabel Daftar User -->
+        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
+            <h1 class="text-2xl font-semibold text-gray-800 px-6 py-4 bg-gray-50 border-b">Daftar User</h1>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-gray-700">
+                    <thead class="bg-gray-100 text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-3 text-center">No</th>
+                            <th class="px-4 py-3 pl-6">Nama</th>
+                            <th class="px-4 py-3 pl-6">Email</th>
+                            <th class="px-4 py-3 text-center">Bagian</th>
+                            <th class="px-4 py-3 text-center">Role</th>
+                            <th class="px-4 py-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($users as $index => $user)
+                            <tr class="border-b hover:bg-gray-50 transition duration-150">
+                                <td class="px-4 py-3 text-center">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 pl-6 break-words">{{ $user->name }}</td>
+                                <td class="px-4 py-3 pl-6 break-words">{{ $user->email }}</td>
+                                <td class="px-4 py-3 text-center">{{ $user->bagian->nama ?? '-' }}</td>
+                                <td class="px-4 py-3 text-center capitalize">{{ $user->role }}</td>
+                                <td class="px-4 py-3 text-center flex justify-center space-x-2">
+                                    <a href="{{ route('admin.edit', $user->id) }}"
+                                        class="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-200 transition">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    <form action="{{ route('admin.destroy', $user->id) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus user ini?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-200 transition">
+                                            <i class="fas fa-trash mr-1"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-4 text-center text-gray-500">Tidak ada data user.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 @endsection

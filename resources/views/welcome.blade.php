@@ -1,43 +1,60 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
 
-@section('title', 'Welcome')
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome - Tanaoroshi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logo.jpg') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('{{ asset('images/bg.jpg') }}') no-repeat center center fixed;
+            background-size: cover;
+            color: #2c3e50;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-@section('content')
-    <img id="logo" alt="Abstract logo with blue and orange geometric shapes forming a square" class="mb-8 opacity-0"
-        height="100" src="{{ asset('assets/logos.png') }}" style="width: 100px; height: 100px" width="100" />
+        #logo {
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
 
-    <button id="playBtn"
-        class="flex items-center gap-2 bg-blue-600 text-white text-sm font-normal rounded-full px-6 py-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-0">
-        <a href="{{ route('login') }}"><i class="fas fa-search text-xs"></i> Play <i
-                class="fas fa-arrow-right text-xs"></i></a>
-    </button>
-@endsection
+        .animate-logo {
+            opacity: 1;
+            transform: rotate(360deg) scale(1.2);
+        }
+    </style>
+</head>
 
-@push('scripts')
+<body>
+    <div class="flex flex-col items-center">
+        <img id="logo" alt="Abstract logo with blue and orange geometric shapes forming a square"
+            class="w-32 h-32 mb-8" src="{{ asset('images/logo.jpg') }}" />
+    </div>
+
     <script>
-        // Animate logo and button on page load with scroll down effect
+        // Animate logo on page load
         window.addEventListener("DOMContentLoaded", () => {
             const logo = document.getElementById("logo");
-            const playBtn = document.getElementById("playBtn");
 
-            // Animate logo
-            logo.classList.add("animate-scrollDown");
-            logo.style.opacity = "1";
-
-            // Animate button with slight delay
+            // Tambahkan animasi setelah 0.5 detik untuk efek muncul
             setTimeout(() => {
-                playBtn.classList.add("animate-scrollDown");
-                playBtn.style.opacity = "1";
-            }, 200);
-        });
+                logo.classList.add("animate-logo");
+            }, 5000);
 
-        // Animate button click with scale effect
-        const playBtn = document.getElementById("playBtn");
-        playBtn.addEventListener("click", () => {
-            playBtn.classList.remove("animate-clickScale");
-            // Trigger reflow to restart animation
-            void playBtn.offsetWidth;
-            playBtn.classList.add("animate-clickScale");
+            // Redirect ke halaman login setelah animasi selesai (0.5s + 0.3s delay)
+            setTimeout(() => {
+                window.location.href = "{{ route('login') }}";
+            }, 800); // 0.5s animasi + 0.3s delay tambahan
         });
     </script>
-@endpush
+</body>
+
+</html>

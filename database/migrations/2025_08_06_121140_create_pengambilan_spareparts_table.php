@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pengambilan_barangs', function (Blueprint $table) {
+        Schema::create('pengambilan_spareparts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // yang mengambil
             $table->string('bagian_id')->constrained('bagian')->onDelete('cascade'); // bagian/divisi yang membutuhkan

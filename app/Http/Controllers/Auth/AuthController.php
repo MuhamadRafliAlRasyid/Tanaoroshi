@@ -6,25 +6,38 @@ use App\Models\User;
 use App\Models\Bagian;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+
 class AuthController extends Controller
 {
+    /**
+     * Menampilkan formulir registrasi.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showRegister()
     {
-        $bagians = Bagian::all(); // Pastikan penulisan model benar (Bagian, bukan bagian)
+        $bagians = Bagian::all();
         return view('auth.register', compact('bagians'));
     }
 
+    /**
+     * Menangani proses registrasi pengguna baru.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:user,spv,admin', // Sesuaikan dengan role yang ada
+            'role' => 'required|in:user,spv,admin,super,karyawan', // Ditambahkan 'super' dan 'karyawan'
             'bagian_id' => 'nullable|exists:bagian,id',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -33,14 +46,19 @@ class AuthController extends Controller
         $userData['password'] = Hash::make($request->password);
 
         if ($request->hasFile('profile_photo')) {
+            // Pastikan direktori ada, buat jika belum
+            $directory = public_path('images/profile');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
             $fileName = Str::random(10) . '.' . $request->file('profile_photo')->getClientOriginalExtension();
-            $request->file('profile_photo')->move(public_path('images/profile'), $fileName);
+            $request->file('profile_photo')->move($directory, $fileName);
             $userData['profile_photo_path'] = $fileName;
         }
 
         User::create($userData);
 
-        // Redirect berdasarkan role
         return match ($userData['role']) {
             'super' => redirect('/super/dashboard')->with('success', 'Registrasi berhasil!'),
             'admin' => redirect('/admin/dashboard')->with('success', 'Registrasi berhasil!'),
@@ -49,11 +67,22 @@ class AuthController extends Controller
         };
     }
 
+    /**
+     * Menampilkan formulir login.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
+    /**
+     * Menangani proses logout pengguna.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -62,6 +91,12 @@ class AuthController extends Controller
         return redirect('/login')->with('success', 'Anda telah logout.');
     }
 
+    /**
+     * Menangani proses login pengguna.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -71,18 +106,18 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-
             $role = Auth::user()->role;
+            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role')); // Gunakan Log
             return match ($role) {
-                'super' => redirect('/super/kepala')->with('success', 'Login berhasil!'),
+                'super' => redirect('/super/dashboard')->with('success', 'Login berhasil!'),
                 'admin' => redirect('/admin/dashboard')->with('success', 'Login berhasil!'),
-                'karyawan' => redirect('/karyawan/gudang')->with('success', 'Login berhasil!'),
+                'karyawan' => redirect('/karyawan/dashboard')->with('success', 'Login berhasil!'),
                 default => redirect('/')->with('success', 'Login berhasil!'),
             };
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
-        ]);
+        ])->withInput();
     }
 }

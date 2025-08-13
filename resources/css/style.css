@@ -38,12 +38,19 @@ body {
             font-weight: bold;
         }
 
-        @media (max-width: 500px) {
-            .container {
-                margin: 20px;
-                padding: 15px;
-            }
-        }
+
+        @media (max-width: 768px) {
+    .ml-64 {
+        margin-left: 0 !important;
+    }
+    .w-64 {
+        width: 0;
+        display: none;
+    }
+    .fixed.h-full {
+        position: static;
+    }
+}
         input,
         select {
             width: 100%;

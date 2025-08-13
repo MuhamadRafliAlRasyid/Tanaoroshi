@@ -15,10 +15,11 @@
             font-family: 'Inter', sans-serif;
             background: url('{{ asset('images/bg.jpg') }}') no-repeat center center fixed;
             background-size: cover;
+            color: #2c3e50;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
@@ -33,12 +34,13 @@
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
-            color: #2c3e50;
+            font-size: 0.875rem;
+            font-weight: 500;
             margin-bottom: 0.5rem;
         }
 
@@ -47,15 +49,16 @@
             width: 100%;
             padding: 0.75rem;
             border: 2px solid #ecf0f1;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         input:focus,
         select:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
 
         .file-input {
@@ -68,7 +71,7 @@
             background: #3498db;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
             transition: background 0.3s ease, transform 0.3s ease;
@@ -81,12 +84,13 @@
 
         .links {
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
 
         .links a {
             color: #3498db;
             text-decoration: none;
+            font-weight: 500;
             transition: color 0.3s ease;
         }
 
@@ -96,26 +100,23 @@
 
         .error {
             color: #e74c3c;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             margin-top: 0.25rem;
             display: none;
         }
     </style>
 </head>
 
-<body class="bg-white min-h-screen flex flex-col justify-center items-center">
-
+<body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md">
-        {{-- <div class="flex justify-center mb-10">
-                <div class="flex items-center border border-gray-200 rounded-md px-3 py-2">
-                    <img alt="Logo" class="w-6 h-6" src="{{ asset('images/logo.jpg') }}" />
-                    <span class="ml-2 text-xs font-semibold text-black">BUHINCORE</span>
-                </div>
-            </div> --}}
-
+        <div class="flex justify-center mb-8">
+            <div class="flex items-center border border-gray-200 rounded-lg px-4 py-2">
+                <img alt="Logo" class="w-30 h-12" src="{{ asset('images/logo.jpg') }}" />
+                {{-- <span class="ml-3 text-lg font-semibold text-gray-800">Tanaoroshi</span> --}}
+            </div>
+        </div>
         @yield('content')
     </div>
-
     @stack('scripts')
 </body>
 
