@@ -8,10 +8,22 @@ use Illuminate\Support\Facades\Log;
 
 class BagianController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $bagians = Bagian::all();
+        $query = Bagian::query();
+
+        // Filter berdasarkan pencarian
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_bagian', 'like', "%{$search}%")
+                    ->orWhere('deskripsi', 'like', "%{$search}%");
+            });
+        }
+
+        $bagians = $query->paginate(10)->withQueryString();
         Log::info('Index Bagians: ', $bagians->toArray());
+
         return view('bagian.index', compact('bagians'));
     }
 
@@ -32,11 +44,11 @@ class BagianController extends Controller
         return redirect()->route('bagian.index')->with('success', 'Bagian berhasil ditambahkan.');
     }
 
-    public function show($id)
-    {
-        $bagian = Bagian::findOrFail($id);
-        return view('bagian.show', compact('bagian'));
-    }
+    // public function show($id)
+    // {
+    //     $bagian = Bagian::findOrFail($id);
+    //     return view('bagian.show', compact('bagian'));
+    // }
 
 
     public function edit(Bagian $bagian)

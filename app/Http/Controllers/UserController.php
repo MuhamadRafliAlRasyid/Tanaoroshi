@@ -14,11 +14,24 @@ class UserController extends Controller
     /**
      * Tampilkan daftar pengguna (selain admin) beserta relasi bagian.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('bagian')
-            ->where('role', '!=', 'admin')
-            ->get();
+        $query = User::with('bagian')->where('role', '!=', 'admin');
+
+        // Filter berdasarkan pencarian
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%")
+                    ->orWhereHas('bagian', function ($q) use ($search) {
+                        $q->where('nama_bagian', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $users = $query->paginate(10)->withQueryString();
 
         return view('admin.index', compact('users'));
     }

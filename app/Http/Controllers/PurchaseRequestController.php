@@ -11,9 +11,26 @@ class PurchaseRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $purchaseRequests = PurchaseRequest::with('user')->get();
+        $query = PurchaseRequest::with('user');
+
+        // Filter berdasarkan pencarian
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_part', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('created_at', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $purchaseRequests = $query->paginate(10)->withQueryString();
+
         return view('purchase_requests.index', compact('purchaseRequests'));
     }
 

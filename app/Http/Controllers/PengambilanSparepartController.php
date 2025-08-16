@@ -11,10 +11,33 @@ use Illuminate\Support\Facades\Log;
 
 class PengambilanSparepartController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengambilanSpareparts = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])->get();
+        $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
+
+        // Filter berdasarkan pencarian
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('waktu_pengambilan', 'like', "%{$search}%")
+                    ->orWhere('jumlah', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('bagian', function ($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('sparepart', function ($q) use ($search) {
+                        $q->where('nama_part', 'like', "%{$search}%")
+                            ->orWhere('model', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $pengambilanSpareparts = $query->paginate(10)->withQueryString();
         Log::info('Index Pengambilan Spareparts: ', $pengambilanSpareparts->toArray());
+
         return view('pengambilan.index', compact('pengambilanSpareparts'));
     }
 

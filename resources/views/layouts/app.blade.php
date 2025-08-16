@@ -32,13 +32,6 @@
                 <img src="{{ asset('images/logo.jpg') }}" alt="Logo" class="w-28 h-12 object-contain">
                 <h1 class="text-xl font-semibold text-gray-900">Tanaoroshi</h1>
             </div>
-            <div class="w-full max-w-md mx-6">
-                <form action="#" method="GET" class="relative">
-                    <input type="text" name="search" placeholder="Cari item..."
-                        class="w-full border border-gray-300 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </form>
-            </div>
             <div class="flex items-center space-x-4">
                 <button class="text-gray-500 text-lg hover:text-blue-600 transition">
                     <i class="fas fa-bell"></i>
@@ -90,10 +83,6 @@
                                 <li><a href="#"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
                                             class="fas fa-print"></i> Laporan</a></li>
-                            @elseif (Auth::user()->role === 'spv')
-                                <li><a href="#"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-file-alt"></i> Permintaan</a></li>
                             @elseif (Auth::user()->role === 'admin')
                                 <li><a href="{{ route('spareparts.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i

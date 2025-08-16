@@ -3,41 +3,61 @@
 @section('title', 'Daftar User')
 
 @section('content')
-    <main class="p-6 flex flex-col items-center space-y-8">
-        <!-- Tombol Tambah User -->
-        <form action="{{ route('admin.create') }}" method="get" class="w-full max-w-4xl">
-            <button type="submit"
-                class="bg-[#1e53e4] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md hover:bg-[#1749c6] transition duration-200 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <i class="fas fa-plus mr-2"></i> Tambah User
-            </button>
-        </form>
+    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 py-4">
+        <div class="w-full max-w-5xl p-4">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-2 border-indigo-200 pb-2">
+                <i class="fas fa-list mr-2"></i> Daftar User
+            </h2>
 
-        <!-- Tabel Daftar User -->
-        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
-            <h1 class="text-2xl font-semibold text-gray-800 px-6 py-4 bg-gray-50 border-b">Daftar User</h1>
-            <div class="overflow-x-auto">
+            @if (session('success'))
+                <div
+                    class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-md text-center">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <!-- Form Pencarian -->
+            <div class="mb-6 flex items-center space-x-2 w-full">
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Cari nama, email, atau bagian..."
+                    class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                <form action="{{ route('admin.index') }}" method="GET" class="ml-2">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 py-1 shadow-md transition duration-200">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <a href="{{ route('admin.create') }}"
+                class="mb-6 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
+                <i class="fas fa-plus mr-2"></i> Tambah User
+            </a>
+
+            <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
                 <table class="w-full text-sm text-gray-700">
-                    <thead class="bg-gray-100 text-xs uppercase">
+                    <thead class="bg-gray-200">
                         <tr>
-                            <th class="px-4 py-3 text-center">No</th>
-                            <th class="px-4 py-3 pl-6">Nama</th>
-                            <th class="px-4 py-3 pl-6">Email</th>
-                            <th class="px-4 py-3 text-center">Bagian</th>
-                            <th class="px-4 py-3 text-center">Role</th>
-                            <th class="px-4 py-3 text-center">Aksi</th>
+                            <th class="px-4 py-2 text-center font-medium">No</th>
+                            <th class="px-4 py-2 font-medium">Nama</th>
+                            <th class="px-4 py-2 font-medium">Email</th>
+                            <th class="px-4 py-2 text-center font-medium">Bagian</th>
+                            <th class="px-4 py-2 text-center font-medium">Role</th>
+                            <th class="px-4 py-2 text-center font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($users as $index => $user)
-                            <tr class="border-b hover:bg-gray-50 transition duration-150">
-                                <td class="px-4 py-3 text-center">{{ $index + 1 }}</td>
-                                <td class="px-4 py-3 pl-6 break-words">{{ $user->name }}</td>
-                                <td class="px-4 py-3 pl-6 break-words">{{ $user->email }}</td>
-                                <td class="px-4 py-3 text-center">{{ $user->bagian->nama ?? '-' }}</td>
-                                <td class="px-4 py-3 text-center capitalize">{{ $user->role }}</td>
-                                <td class="px-4 py-3 text-center flex justify-center space-x-2">
+                            <tr class="border-b hover:bg-gray-50 transition duration-200">
+                                <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
+                                <td class="px-4 py-2 break-words text-gray-900">{{ $user->name }}</td>
+                                <td class="px-4 py-2 break-words text-gray-700">{{ $user->email }}</td>
+                                <td class="px-4 py-2 text-center text-gray-600">{{ $user->bagian->nama ?? '-' }}</td>
+                                <td class="px-4 py-2 text-center capitalize text-indigo-700">{{ $user->role }}</td>
+                                <td class="px-4 py-2 text-center flex justify-center space-x-2">
                                     <a href="{{ route('admin.edit', $user->id) }}"
-                                        class="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-200 transition">
+                                        class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                        title="Edit User">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
                                     <form action="{{ route('admin.destroy', $user->id) }}" method="POST"
@@ -45,7 +65,8 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-200 transition">
+                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                            title="Hapus User">
                                             <i class="fas fa-trash mr-1"></i> Hapus
                                         </button>
                                     </form>
@@ -59,6 +80,10 @@
                     </tbody>
                 </table>
             </div>
-        </section>
-    </main>
+
+            <div class="mt-6 text-center">
+                {{ $users->links('pagination::tailwind') }}
+            </div>
+        </div>
+    </div>
 @endsection

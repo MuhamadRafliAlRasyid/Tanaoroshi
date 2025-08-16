@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Spareparts;
 use Illuminate\Http\Request;
+use App\Exports\SparepartExport;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SparepartController extends Controller
 {
@@ -126,5 +130,24 @@ class SparepartController extends Controller
         $sparepart->delete();
 
         return redirect()->route('spareparts.index')->with('success', 'Sparepart deleted successfully.');
+    }
+
+    /**
+     * Export the spareparts data to Excel.
+     */
+    public function unduh(): BinaryFileResponse
+    {
+        try {
+            Log::info('Export route triggered at ' . now());
+            $export = new SparepartExport();
+            Log::info('Export class instantiated with data count: ' . (Spareparts::count() ?? '0'));
+            Log::info('Starting Excel download process');
+            $response = Excel::download($export, 'spareparts.xlsx');
+            Log::info('Download process completed');
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('Export failed: ' . $e->getMessage() . ' at line ' . $e->getLine());
+            throw $e;
+        }
     }
 }

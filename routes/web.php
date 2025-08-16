@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BagianController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\SparepartController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\SuperDashboardController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\PengambilanSparepartController;
@@ -30,14 +31,14 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/spareparts/unduh', [SparepartController::class, 'unduh'])->name('unduh');
+
 
 // Protected Routes with Auth Middleware
 Route::middleware(['auth'])->group(function () {
     // Dashboard Routes
     Route::get('/super/dashboard', [SuperDashboardController::class, 'index'])->name('super.dashboard');
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/karyawan/dashboard', function () {
         return view('karyawan.gudang');
     })->name('karyawan.dashboard');
@@ -48,11 +49,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [SparepartController::class, 'create'])->name('create');
         Route::post('/', [SparepartController::class, 'store'])->name('store');
         Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
+        Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
     });
-
     // Pengambilan Sparepart Routes
     Route::prefix('pengambilan')->name('pengambilan.')->group(function () {
         Route::get('/', [PengambilanSparepartController::class, 'index'])->name('index');
@@ -93,7 +94,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [BagianController::class, 'index'])->name('index');
         Route::get('/create', [BagianController::class, 'create'])->name('create');
         Route::post('/', [BagianController::class, 'store'])->name('store');
-        Route::get('/{id}', [BagianController::class, 'show'])->name('show');
+        // Route::get('/{id}', [BagianController::class, 'show'])->name('show');
         Route::get('/{bagian}/edit', [BagianController::class, 'edit'])->name('edit');
         Route::put('/{id}', [BagianController::class, 'update'])->name('update');
         Route::delete('/{bagian}', [BagianController::class, 'destroy'])->name('destroy');

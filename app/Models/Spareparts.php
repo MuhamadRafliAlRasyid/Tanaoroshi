@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Spareparts extends Model
 {
+    protected $table = 'spareparts';
     use HasFactory;
 
     protected $fillable = [

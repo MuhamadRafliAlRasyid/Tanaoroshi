@@ -79,35 +79,43 @@
                                 </td>
                                 <td class="px-4 py-2 text-center flex justify-center space-x-2">
                                     <a href="{{ route('purchase_requests.show', $item->id) }}"
-                                        class="text-indigo-600 hover:text-indigo-800">
-                                        <i class="fas fa-eye"></i>
+                                        class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                        title="Lihat Detail">
+                                        <i class="fas fa-eye mr-1"></i> Lihat
                                     </a>
                                     <a href="{{ route('purchase_requests.edit', $item->id) }}"
-                                        class="text-yellow-600 hover:text-yellow-800">
-                                        <i class="fas fa-edit"></i>
+                                        class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                        title="Edit Pengajuan">
+                                        <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
                                     <form action="{{ route('purchase_requests.destroy', $item->id) }}" method="POST"
                                         onsubmit="return confirm('Yakin hapus data ini?');" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="submit"
+                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                            title="Hapus Pengajuan">
+                                            <i class="fas fa-trash mr-1"></i> Hapus
                                         </button>
                                     </form>
                                     @if (Auth::user()->role === 'super' && $item->status === 'PR')
                                         <form action="{{ route('purchase_requests.approve', $item->id) }}" method="POST"
                                             class="inline">
                                             @csrf
-                                            <button type="submit" class="text-green-600 hover:text-green-800">
-                                                <i class="fas fa-check"></i> Approve
+                                            <button type="submit"
+                                                class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                                title="Setujui Pengajuan">
+                                                <i class="fas fa-check mr-1"></i> Setujui
                                             </button>
                                         </form>
                                         <form action="{{ route('purchase_requests.reject', $item->id) }}" method="POST"
                                             class="inline">
                                             @csrf
                                             <input type="hidden" name="notes" value="Rejected">
-                                            <button type="submit" class="text-red-600 hover:text-red-800">
-                                                <i class="fas fa-times"></i> Reject
+                                            <button type="submit"
+                                                class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                                title="Tolak Pengajuan">
+                                                <i class="fas fa-times mr-1"></i> Tolak
                                             </button>
                                         </form>
                                     @endif
