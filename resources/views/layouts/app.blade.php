@@ -103,7 +103,10 @@
                                 <li><a href="{{ route('purchase_requests.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
                                             class="fas fa-check-circle"></i> Approve Pengajuan Sparepart</a></li>
-                                <!-- Tambahkan link lain untuk role super jika diperlukan -->
+                            @elseif (Auth::user()->role === 'karyawan')
+                                <li><a href="{{ route('pengambilan.index') }}"
+                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
+                                            class="fas fa-tasks"></i> Daftar Pengambilan Sparepart</a></li>
                             @endif
                         </ul>
                     </div>

@@ -61,10 +61,6 @@
             box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
 
-        .file-input {
-            padding: 0.5rem 0;
-        }
-
         button {
             width: 100%;
             padding: 0.75rem;
@@ -82,22 +78,6 @@
             transform: scale(1.05);
         }
 
-        .links {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-
-        .links a {
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .links a:hover {
-            color: #2980b9;
-        }
-
         .error {
             color: #e74c3c;
             font-size: 0.75rem;
@@ -109,12 +89,6 @@
 
 <body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md">
-        <div class="flex justify-center mb-8">
-            <div class="flex items-center border border-gray-200 rounded-lg px-4 py-2">
-                <img alt="Logo" class="w-30 h-12" src="{{ asset('images/logo.jpg') }}" />
-                {{-- <span class="ml-3 text-lg font-semibold text-gray-800">Tanaoroshi</span> --}}
-            </div>
-        </div>
         @yield('content')
     </div>
     @stack('scripts')

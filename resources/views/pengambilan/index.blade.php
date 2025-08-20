@@ -66,16 +66,23 @@
                                         title="Edit Pengambilan">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('pengambilan.destroy', $item->id) }}" method="POST"
-                                        onsubmit="return confirm('Yakin hapus data ini?');" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
-                                            title="Hapus Pengambilan">
-                                            <i class="fas fa-trash mr-1"></i> Hapus
-                                        </button>
-                                    </form>
+                                    @if (Auth::user()->role === 'admin')
+                                        <form action="{{ route('pengambilan.destroy', $item->id) }}" method="POST"
+                                            onsubmit="return confirm('Yakin hapus data ini?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
+                                                title="Hapus Pengambilan">
+                                                <i class="fas fa-trash mr-1"></i> Hapus
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <a href="{{ route('pengambilan.export', $item->id) }}"
+                                        class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 flex items-center text-sm font-medium transition-all duration-200 transform hover:scale-105 relative group"
+                                        title="Eksport Data">
+                                        <i class="fas fa-download mr-1"></i> Eksport
+                                    </a>
                                 </td>
                             </tr>
                         @empty

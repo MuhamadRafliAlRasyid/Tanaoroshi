@@ -10,27 +10,41 @@
                 class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                 @csrf
 
-                <!-- User -->
-                <div>
-                    <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                    <select id="user_id" name="user_id" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if (Auth::user()->role === 'admin')
+                    <!-- User (Hanya untuk admin) -->
+                    <div>
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                        <select id="user_id" name="user_id" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <!-- Bagian -->
-                <div>
-                    <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                    <select id="bagian_id" name="bagian_id" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach ($bagians as $bagian)
-                            <option value="{{ $bagian->id }}">{{ $bagian->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <!-- Bagian (Hanya untuk admin) -->
+                    <div>
+                        <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                        <select id="bagian_id" name="bagian_id" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach ($bagians as $bagian)
+                                <option value="{{ $bagian->id }}">{{ $bagian->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @else
+                    <!-- Tampilkan info untuk karyawan (baca saja, tidak editable) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                        <input type="text" value="{{ Auth::user()->name }}" readonly
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                        <input type="text" value="{{ Auth::user()->bagian->nama ?? 'Tidak ada bagian' }}" readonly
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                    </div>
+                @endif
 
                 <!-- Sparepart -->
                 <div>

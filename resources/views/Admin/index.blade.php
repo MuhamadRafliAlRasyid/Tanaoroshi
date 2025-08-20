@@ -3,58 +3,61 @@
 @section('title', 'Daftar User')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 py-4">
-        <div class="w-full max-w-5xl p-4">
-            <h2 class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-2 border-indigo-200 pb-2">
-                <i class="fas fa-list mr-2"></i> Daftar User
+    <main class="p-6 flex flex-col items-center space-y-8 bg-gradient-to-br from-gray-100 to-white min-h-[calc(100vh-4rem)]">
+        <section
+            class="w-full max-w-5xl bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 hover:shadow-3xl">
+            <h2 class="text-3xl font-bold text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-3 flex items-center">
+                <i class="fas fa-users mr-2 text-indigo-600"></i> Daftar User
             </h2>
 
             @if (session('success'))
                 <div
-                    class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-md text-center">
+                    class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-md text-center animate-fade-in">
                     {{ session('success') }}
                 </div>
             @endif
 
-            <!-- Form Pencarian -->
-            <div class="mb-6 flex items-center space-x-2 w-full">
-                <input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Cari nama, email, atau bagian..."
-                    class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                <form action="{{ route('admin.index') }}" method="GET" class="ml-2">
-                    <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 py-1 shadow-md transition duration-200">
-                        <i class="fas fa-search"></i>
-                    </button>
+            <!-- Search and Action -->
+            <div class="mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
+                <form action="{{ route('admin.index') }}" method="GET" class="w-full md:w-auto">
+                    <div class="relative">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Cari nama, email, atau bagian..."
+                            class="w-full md:w-72 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm pr-10">
+                        <button type="submit"
+                            class="absolute right-2 top-2 text-gray-500 hover:text-indigo-600 focus:outline-none">
+                            <i class="fas fa-search"></i>
+                        </button>
                 </form>
             </div>
 
             <a href="{{ route('admin.create') }}"
-                class="mb-6 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
+                class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-105 flex items-center">
                 <i class="fas fa-plus mr-2"></i> Tambah User
             </a>
+            </div>
 
-            <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
-                <table class="w-full text-sm text-gray-700">
-                    <thead class="bg-gray-200">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-gray-700 border-collapse">
+                    <thead class="bg-gray-200 text-xs uppercase font-semibold">
                         <tr>
-                            <th class="px-4 py-2 text-center font-medium">No</th>
-                            <th class="px-4 py-2 font-medium">Nama</th>
-                            <th class="px-4 py-2 font-medium">Email</th>
-                            <th class="px-4 py-2 text-center font-medium">Bagian</th>
-                            <th class="px-4 py-2 text-center font-medium">Role</th>
-                            <th class="px-4 py-2 text-center font-medium">Aksi</th>
+                            <th class="px-4 py-3 text-center border-b">No</th>
+                            <th class="px-4 py-3 border-b">Nama</th>
+                            <th class="px-4 py-3 border-b">Email</th>
+                            <th class="px-4 py-3 text-center border-b">Bagian</th>
+                            <th class="px-4 py-3 text-center border-b">Role</th>
+                            <th class="px-4 py-3 text-center border-b">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($users as $index => $user)
-                            <tr class="border-b hover:bg-gray-50 transition duration-200">
-                                <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
-                                <td class="px-4 py-2 break-words text-gray-900">{{ $user->name }}</td>
-                                <td class="px-4 py-2 break-words text-gray-700">{{ $user->email }}</td>
-                                <td class="px-4 py-2 text-center text-gray-600">{{ $user->bagian->nama ?? '-' }}</td>
-                                <td class="px-4 py-2 text-center capitalize text-indigo-700">{{ $user->role }}</td>
-                                <td class="px-4 py-2 text-center flex justify-center space-x-2">
+                            <tr class="border-b hover:bg-gray-50 transition-all duration-200">
+                                <td class="px-4 py-3 text-center">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 break-words text-gray-900">{{ $user->name }}</td>
+                                <td class="px-4 py-3 break-words text-gray-700">{{ $user->email }}</td>
+                                <td class="px-4 py-3 text-center text-gray-600">{{ $user->bagian->nama ?? '-' }}</td>
+                                <td class="px-4 py-3 text-center capitalize text-indigo-700">{{ $user->role }}</td>
+                                <td class="px-4 py-3 text-center flex justify-center space-x-2">
                                     <a href="{{ route('admin.edit', $user->id) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit User">
@@ -84,6 +87,22 @@
             <div class="mt-6 text-center">
                 {{ $users->links('pagination::tailwind') }}
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
 @endsection

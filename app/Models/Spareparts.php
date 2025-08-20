@@ -27,7 +27,8 @@ class Spareparts extends Model
         'jumlah_pesanan',
         'cek',
         'pic',
-        'qr_code'
+        'qr_code',
+        'location' // Tambahkan location ke fillable
     ];
 
     public function pengambilanBarangs()

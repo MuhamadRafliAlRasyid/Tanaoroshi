@@ -17,43 +17,58 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- User -->
-                    <div>
-                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                        <select id="user_id" name="user_id" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @forelse ($users as $user)
-                                <option value="{{ $user->id }}"
-                                    {{ old('user_id', $pengambilanSparepart->user_id) == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @empty
-                                <option disabled>Tidak ada user tersedia</option>
-                            @endforelse
-                        </select>
-                        @error('user_id')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    @if (Auth::user()->role === 'admin')
+                        <!-- User (Hanya untuk admin) -->
+                        <div>
+                            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                            <select id="user_id" name="user_id" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @forelse ($users as $user)
+                                    <option value="{{ $user->id }}"
+                                        {{ old('user_id', $pengambilanSparepart->user_id) == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @empty
+                                    <option disabled>Tidak ada user tersedia</option>
+                                @endforelse
+                            </select>
+                            @error('user_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <!-- Bagian -->
-                    <div>
-                        <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                        <select id="bagian_id" name="bagian_id" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @forelse ($bagians as $bagian)
-                                <option value="{{ $bagian->id }}"
-                                    {{ old('bagian_id', $pengambilanSparepart->bagian_id) == $bagian->id ? 'selected' : '' }}>
-                                    {{ $bagian->nama }}
-                                </option>
-                            @empty
-                                <option disabled>Tidak ada bagian tersedia</option>
-                            @endforelse
-                        </select>
-                        @error('bagian_id')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                        <!-- Bagian (Hanya untuk admin) -->
+                        <div>
+                            <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                            <select id="bagian_id" name="bagian_id" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @forelse ($bagians as $bagian)
+                                    <option value="{{ $bagian->id }}"
+                                        {{ old('bagian_id', $pengambilanSparepart->bagian_id) == $bagian->id ? 'selected' : '' }}>
+                                        {{ $bagian->nama }}
+                                    </option>
+                                @empty
+                                    <option disabled>Tidak ada bagian tersedia</option>
+                                @endforelse
+                            </select>
+                            @error('bagian_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @else
+                        <!-- Tampilkan info untuk karyawan (baca saja, tidak editable) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                            <input type="text" value="{{ $pengambilanSparepart->user->name }}" readonly
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                            <input type="text" value="{{ $pengambilanSparepart->bagian->nama ?? 'Tidak ada bagian' }}"
+                                readonly
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                        </div>
+                    @endif
 
                     <!-- Sparepart -->
                     <div>

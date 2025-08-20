@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Bagian;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -18,7 +20,6 @@ class UserController extends Controller
     {
         $query = User::with('bagian')->where('role', '!=', 'admin');
 
-        // Filter berdasarkan pencarian
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -26,7 +27,7 @@ class UserController extends Controller
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('role', 'like', "%{$search}%")
                     ->orWhereHas('bagian', function ($q) use ($search) {
-                        $q->where('nama_bagian', 'like', "%{$search}%");
+                        $q->where('nama', 'like', "%{$search}%");
                     });
             });
         }
@@ -50,33 +51,37 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
-            'bagian_id' => 'nullable|exists:bagian,id',
-            'role' => 'required|in:super,admin,karyawan',
-            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:6',
+                'bagian_id' => 'nullable|exists:bagian,id', // Opsional
+                'role' => 'required|in:super,admin,karyawan', // Diperlukan untuk create
+                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
 
-        // Enkripsi password
-        $validated['password'] = Hash::make($validated['password']);
-        $user = User::create($validated);
+            // Enkripsi password
+            $validated['password'] = Hash::make($validated['password']);
 
-        // Upload foto profil jika ada
-        $filename = $this->handleFileUpload($request);
-        if ($filename) {
-            $user->profile_photo_path = $filename;
-            $user->save();
+            // Simpan user terlebih dahulu
+            $user = User::create($validated);
+
+            // Upload foto profil jika ada
+            $this->handleFileUpload($request, $user);
+
+            // Redirect berdasarkan role user yang login
+            $redirectRoute = optional(Auth::user())->role === 'admin'
+                ? 'admin.index'
+                : 'permintaan.index';
+
+            Log::info('User created successfully', ['user_id' => $user->id, 'email' => $user->email]);
+
+            return redirect()->route($redirectRoute)->with('success', 'User created successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error in store method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'request' => $request->all()]);
+            return redirect()->back()->with('error', 'Gagal membuat user. Silakan coba lagi.');
         }
-
-        // Redirect berdasarkan role user yang login
-        $redirectRoute = optional(Auth::user())->role === 'admin'
-            ? 'admin.index'
-            : 'permintaan.index';
-
-
-        return redirect()->route($redirectRoute)->with('success', 'User created successfully.');
     }
 
     /**
@@ -93,36 +98,43 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6',
-            'bagian_id' => 'nullable|exists:bagian,id',
-            'role' => 'required|in:super,admin,karyawan',
-            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+        try {
+            // Log data request untuk debugging
+            Log::info('Update request received', ['request' => $request->all(), 'user_id' => $user->id]);
 
-        // Update password jika diisi
-        if ($request->filled('password')) {
-            $validated['password'] = Hash::make($request->password);
-        } else {
-            unset($validated['password']);
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'password' => 'nullable|string|min:6',
+                'bagian_id' => 'nullable|exists:bagian,id', // Opsional
+                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                // 'role' dihilangkan dari required karena tidak selalu diupdate di form
+            ]);
+
+            // Update password jika diisi
+            if ($request->filled('password')) {
+                $validated['password'] = Hash::make($request->password);
+            } else {
+                unset($validated['password']);
+            }
+
+            // Upload foto baru jika ada
+            $this->handleFileUpload($request, $user, $validated);
+
+            $user->update($validated);
+
+            // Redirect berdasarkan role user yang login
+            $redirectRoute = optional(Auth::user())->role === 'admin'
+                ? 'admin.index'
+                : 'permintaan.index';
+
+            Log::info('User updated successfully', ['user_id' => $user->id, 'email' => $user->email]);
+
+            return redirect()->route($redirectRoute)->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error in update method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'request' => $request->all()]);
+            return redirect()->back()->with('error', 'Gagal memperbarui user. Silakan coba lagi.');
         }
-
-        // Upload foto baru jika ada
-        $filename = $this->handleFileUpload($request, $user);
-        if ($filename) {
-            $validated['profile_photo_path'] = $filename;
-        }
-
-        $user->update($validated);
-
-        // Redirect berdasarkan role user yang login
-        $redirectRoute = optional(Auth::user())->role === 'admin'
-            ? 'admin.index'
-            : 'permintaan.index';
-
-        return redirect()->route($redirectRoute)->with('success', 'User updated successfully.');
     }
 
     /**
@@ -130,41 +142,78 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // Hapus file foto jika ada
-        if ($user->profile_photo_path && file_exists(public_path('img/profile_photo/' . $user->profile_photo_path))) {
-            unlink(public_path('img/profile_photo/' . $user->profile_photo_path));
-        }
+        try {
+            // Hapus file foto jika ada
+            if ($user->profile_photo_path && file_exists(public_path('img/profile_photo/' . $user->profile_photo_path))) {
+                unlink(public_path('img/profile_photo/' . $user->profile_photo_path));
+            }
 
-        $user->delete();
-        return redirect()->route('admin.index')->with('success', 'User deleted successfully.');
+            $user->delete();
+            Log::info('User deleted successfully', ['user_id' => $user->id]);
+
+            return redirect()->route('admin.index')->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error in destroy method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()->with('error', 'Gagal menghapus user. Silakan coba lagi.');
+        }
     }
 
     /**
      * Menghandle upload foto profil user.
      *
      * @param Request $request
-     * @param User|null $user
-     * @return string|null
+     * @param User $user
+     * @param array $validated (opsional untuk update)
+     * @return void
      */
-    private function handleFileUpload(Request $request, User $user = null)
+    private function handleFileUpload(Request $request, User $user, array $validated = [])
     {
-        if ($request->hasFile('profile_photo')) {
-            $file = $request->file('profile_photo');
-            $filename = Str::random(10) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('img/profile_photo'), $filename);
+        try {
+            if ($request->hasFile('profile_photo')) {
+                Log::info('Photo upload initiated', ['user_id' => $user->id]);
 
-            // Hapus foto lama jika ada
-            if ($user && $user->profile_photo_path) {
-                $oldPath = public_path('img/profile_photo/' . $user->profile_photo_path);
-                if (file_exists($oldPath)) {
-                    unlink($oldPath);
+                // Pastikan direktori ada
+                $directory = public_path('img/profile_photo');
+                if (!File::isDirectory($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                    Log::info('Directory created', ['path' => $directory]);
                 }
+
+                $file = $request->file('profile_photo');
+                $filename = Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $filePath = $directory . '/' . $filename;
+
+                Log::info('Attempting to move file', ['filename' => $filename, 'path' => $filePath]);
+
+                // Pindahkan file
+                $file->move($directory, $filename);
+
+                // Verifikasi file tersimpan
+                if (File::exists($filePath)) {
+                    Log::info('File moved successfully', ['path' => $filePath]);
+
+                    // Hapus foto lama jika ada
+                    if ($user->profile_photo_path && File::exists($directory . '/' . $user->profile_photo_path)) {
+                        File::delete($directory . '/' . $user->profile_photo_path);
+                        Log::info('Old photo deleted', ['old_path' => $directory . '/' . $user->profile_photo_path]);
+                    }
+
+                    // Perbarui path foto
+                    $user->profile_photo_path = $filename;
+                    $user->save();
+                    Log::info('Photo path updated', ['new_path' => $filename]);
+                } else {
+                    Log::error('File move failed', ['path' => $filePath]);
+                    throw new \Exception('Gagal menyimpan file.');
+                }
+            } elseif (!isset($validated['profile_photo_path']) && $user->profile_photo_path) {
+                // Pertahankan foto lama jika tidak ada upload baru
+                $validated['profile_photo_path'] = $user->profile_photo_path;
+                Log::info('Retaining old photo', ['path' => $user->profile_photo_path]);
             }
-
-            return $filename;
+        } catch (\Exception $e) {
+            Log::error('Error in handleFileUpload: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            throw $e; // Melempar error ke metode pemanggil untuk penanganan lebih lanjut
         }
-
-        // Jika tidak ada upload baru, tetap gunakan foto lama (jika ada)
-        return $user ? $user->profile_photo_path : null;
     }
 }

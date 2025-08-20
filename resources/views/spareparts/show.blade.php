@@ -76,8 +76,21 @@
                         <p class="text-lg text-gray-800">{{ $sparepart->pic ?: 'Tidak ada' }}</p>
                     </div>
                     <div class="bg-teal-50 p-4 rounded-lg shadow-md">
+                        <p class="text-gray-600 font-semibold"><i class="fas fa-map-pin mr-2"></i>Lokasi:</p>
+                        <p class="text-lg text-gray-800">{{ $sparepart->location ?: 'Tidak ada' }}</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg shadow-md col-span-2">
                         <p class="text-gray-600 font-semibold"><i class="fas fa-qrcode mr-2"></i>QR Code:</p>
-                        <p class="text-lg text-gray-800">{{ $sparepart->qr_code ?? 'Tidak ada' }}</p>
+                        @if ($sparepart->qr_code && file_exists(storage_path('app/public/' . $sparepart->qr_code)))
+                            <img src="{{ asset('storage/' . $sparepart->qr_code) }}" alt="QR Code"
+                                class="w-64 h-64 mx-auto">
+                            <a href="{{ asset('storage/' . $sparepart->qr_code) }}" download
+                                class="mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center w-full">
+                                <i class="fas fa-download mr-2"></i>Download QR Code
+                            </a>
+                        @else
+                            <p class="text-red-500 text-center">QR Code belum di-generate.</p>
+                        @endif
                     </div>
                 </div>
 

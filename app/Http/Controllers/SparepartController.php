@@ -8,6 +8,11 @@ use App\Exports\SparepartExport;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevel;
+use Illuminate\Support\Str;
 
 class SparepartController extends Controller
 {
@@ -18,7 +23,6 @@ class SparepartController extends Controller
     {
         $query = Spareparts::query();
 
-        // Filter berdasarkan pencarian
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -63,10 +67,12 @@ class SparepartController extends Controller
             'jumlah_pesanan' => 'required|integer',
             'cek' => 'required|boolean',
             'pic' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255', // Tambahkan validasi untuk location
             'qr_code' => 'nullable|string',
         ]);
 
-        Spareparts::create($validated);
+        $sparepart = Spareparts::create($validated);
+        $this->generateQrCode($sparepart, $request->input('location', 'Unknown'));
 
         return redirect()->route('spareparts.index')->with('success', 'Sparepart created successfully.');
     }
@@ -113,10 +119,12 @@ class SparepartController extends Controller
             'jumlah_pesanan' => 'required|integer',
             'cek' => 'required|boolean',
             'pic' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255', // Tambahkan validasi untuk location
             'qr_code' => 'nullable|string',
         ]);
 
         $sparepart->update($validated);
+        $this->generateQrCode($sparepart, $request->input('location', 'Unknown'));
 
         return redirect()->route('spareparts.index')->with('success', 'Sparepart updated successfully.');
     }
@@ -148,6 +156,32 @@ class SparepartController extends Controller
         } catch (\Exception $e) {
             Log::error('Export failed: ' . $e->getMessage() . ' at line ' . $e->getLine());
             throw $e;
+        }
+    }
+
+    /**
+     * Generate QR code for a sparepart.
+     */
+    protected function generateQrCode(Spareparts $sparepart, string $location): void
+    {
+        $qrCodePath = 'qrcodes/sparepart_' . $sparepart->id . '_' . \Illuminate\Support\Str::slug($location) . '.png';
+        $oldQrCodePath = $sparepart->qr_code;
+
+        $qrCode = new QrCode(
+            data: route('spareparts.show', $sparepart->id),
+            encoding: new Encoding('UTF-8'),
+            // errorCorrectionLevel: new ErrorCorrectionLevelHigh(), // ✅ instance class
+            size: 300,
+            margin: 10,
+        );
+
+        $writer = new PngWriter();
+        $writer->write($qrCode)->saveToFile(storage_path('app/public/' . $qrCodePath));
+
+        $sparepart->update(['qr_code' => $qrCodePath]);
+
+        if ($oldQrCodePath && file_exists(storage_path('app/public/' . $oldQrCodePath))) {
+            @unlink(storage_path('app/public/' . $oldQrCodePath));
         }
     }
 }

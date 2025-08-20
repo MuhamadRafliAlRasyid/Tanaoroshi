@@ -124,6 +124,13 @@
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                     <div class="form-group">
+                        <label for="location" class="block text-sm font-medium text-gray-700">Lokasi</label>
+                        <input type="text" id="location" name="location"
+                            value="{{ old('location', $sparepart->location) }}"
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                            placeholder="Contoh: Lemari A-1">
+                    </div>
+                    <div class="form-group">
                         <label for="qr_code" class="block text-sm font-medium text-gray-700">QR Code (Opsional)</label>
                         <input type="text" id="qr_code" name="qr_code"
                             value="{{ old('qr_code', $sparepart->qr_code) }}"

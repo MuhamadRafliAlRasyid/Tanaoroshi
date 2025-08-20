@@ -1,6 +1,8 @@
 <?php
 
 use Livewire\Volt\Volt;
+use App\Exports\PengambilanExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BagianController;
@@ -32,6 +34,9 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::get('/spareparts/unduh', [SparepartController::class, 'unduh'])->name('unduh');
+Route::get('/pengambilan/export/{id?}', function ($id = null) {
+    return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
+})->name('pengambilan.export');
 
 
 // Protected Routes with Auth Middleware
@@ -60,6 +65,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [PengambilanSparepartController::class, 'create'])->name('create');
         Route::post('/', [PengambilanSparepartController::class, 'store'])->name('store');
         Route::get('/{id}', [PengambilanSparepartController::class, 'show'])->name('show');
+        Route::get('/pengambilan/export/{id?}', function ($id = null) {
+            return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
+        })->name('pengambilan.export');
         Route::get('/{pengambilanSparepart}/edit', [PengambilanSparepartController::class, 'edit'])->name('edit');
         Route::put('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'update'])->name('update');
         Route::delete('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'destroy'])->name('destroy');

@@ -8,6 +8,7 @@ use App\Models\Spareparts;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PengambilanSparepartController extends Controller
 {
@@ -15,7 +16,12 @@ class PengambilanSparepartController extends Controller
     {
         $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
 
-        // Filter berdasarkan pencarian
+        if (Auth::check()) {
+            if (Auth::user()->role !== 'admin') {
+                $query->where('user_id', Auth::user()->id);
+            }
+        }
+
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -46,11 +52,24 @@ class PengambilanSparepartController extends Controller
         $users = User::all();
         $bagians = Bagian::all();
         $spareparts = Spareparts::all();
+
+        if (Auth::user()->role !== 'admin') {
+            $users = User::where('id', Auth::user()->id)->get();
+            $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect(); // Ambil dari relasi
+        }
+
         return view('pengambilan.create', compact('users', 'bagians', 'spareparts'));
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->role !== 'admin') {
+            $request->merge([
+                'user_id' => Auth::user()->id,
+                'bagian_id' => Auth::user()->bagian_id ?? 1, // Ambil dari relasi atau default 1 jika null
+            ]);
+        }
+
         Log::info('Store Request: ', $request->all());
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -69,7 +88,10 @@ class PengambilanSparepartController extends Controller
 
     public function show($id)
     {
-        $pengambilanSparepart = PengambilanSparepart::findOrFail($id);
+        $pengambilanSparepart = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])->findOrFail($id);
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403, 'Anda tidak memiliki izin untuk melihat detail ini.');
+        }
         return view('pengambilan.show', compact('pengambilanSparepart'));
     }
 
@@ -79,10 +101,19 @@ class PengambilanSparepartController extends Controller
             Log::error('Edit: Pengambilan Sparepart tidak ditemukan untuk ID: ' . request()->route('id') ?? 'null');
             abort(404, 'Pengambilan Sparepart tidak ditemukan.');
         }
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit data ini.');
+        }
         Log::info('Edit Pengambilan Sparepart: ', $pengambilanSparepart->toArray());
         $users = User::all();
         $bagians = Bagian::all();
         $spareparts = Spareparts::all();
+
+        if (Auth::user()->role !== 'admin') {
+            $users = User::where('id', Auth::user()->id)->get();
+            $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect();
+        }
+
         return view('pengambilan.edit', compact('pengambilanSparepart', 'users', 'bagians', 'spareparts'));
     }
 
@@ -92,8 +123,18 @@ class PengambilanSparepartController extends Controller
             Log::error('Update: Pengambilan Sparepart tidak ditemukan untuk ID: ' . request()->route('id') ?? 'null');
             abort(404, 'Pengambilan Sparepart tidak ditemukan.');
         }
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit data ini.');
+        }
         Log::info('Update Request: ', $request->all());
         Log::info('Update Pengambilan Sparepart Before: ', $pengambilanSparepart->toArray());
+
+        if (Auth::user()->role !== 'admin') {
+            $request->merge([
+                'user_id' => $pengambilanSparepart->user_id,
+                'bagian_id' => $pengambilanSparepart->bagian_id,
+            ]);
+        }
 
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -115,6 +156,9 @@ class PengambilanSparepartController extends Controller
         if (!$pengambilanSparepart || !$pengambilanSparepart->exists) {
             Log::error('Destroy: Pengambilan Sparepart tidak ditemukan untuk ID: ' . request()->route('id') ?? 'null');
             abort(404, 'Pengambilan Sparepart tidak ditemukan.');
+        }
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus data ini.');
         }
         $pengambilanSparepart->delete();
         Log::info('Destroyed Pengambilan Sparepart ID: ', ['id' => $pengambilanSparepart->id]);
