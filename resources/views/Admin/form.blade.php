@@ -64,7 +64,7 @@
                     <div>
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                         <select id="role" name="role" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full border border-gr  ay-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             @foreach (['admin', 'karyawan', 'super'] as $role)
                                 <option value="{{ $role }}"
                                     {{ old('role', $user->role ?? '') == $role ? 'selected' : '' }}>

@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Spareparts extends Model
 {
-    protected $table = 'spareparts';
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'nama_part',
@@ -28,8 +29,11 @@ class Spareparts extends Model
         'cek',
         'pic',
         'qr_code',
-        'location' // Tambahkan location ke fillable
+        'location',
     ];
+
+    protected $dates = ['deleted_at'];
+
 
     public function pengambilanBarangs()
     {

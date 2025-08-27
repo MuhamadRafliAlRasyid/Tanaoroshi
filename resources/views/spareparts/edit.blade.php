@@ -20,7 +20,7 @@
             @endif
 
             <form action="{{ route('spareparts.update', $sparepart->id) }}" method="POST"
-                class="bg-white p-6 rounded-lg shadow-lg space-y-4">
+                class="bg-white p-6 rounded-lg shadow-lg space-y-4" id="sparepartForm">
                 @csrf
                 @method('PUT')
 
@@ -63,15 +63,17 @@
                     </div>
                     <div class="form-group">
                         <label for="patokan_harga" class="block text-sm font-medium text-gray-700">Patokan Harga</label>
-                        <input type="number" step="0.01" id="patokan_harga" name="patokan_harga"
-                            value="{{ old('patokan_harga', $sparepart->patokan_harga) }}" required
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        <input type="text" id="patokan_harga" name="patokan_harga" required
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                            value="{{ old('patokan_harga', $sparepart->patokan_harga ? 'Rp ' . number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->patokan_harga ?? '0'), 2, '.', ',') : '') }}"
+                            placeholder="Masukkan nominal">
                     </div>
                     <div class="form-group">
                         <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
-                        <input type="number" step="0.01" id="total" name="total"
-                            value="{{ old('total', $sparepart->total) }}" required
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        <input type="text" id="total" name="total" required
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                            value="{{ old('total', $sparepart->total ? 'Rp ' . number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->total ?? '0'), 2, '.', ',') : '') }}"
+                            placeholder="Masukkan nominal">
                     </div>
                     <div class="form-group">
                         <label for="ruk_no" class="block text-sm font-medium text-gray-700">RUK No</label>
@@ -147,4 +149,50 @@
             </form>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const formatRupiah = (input) => {
+                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya ambil angka dan titik
+                    if (value === '') value = '0';
+                    let number = parseFloat(value) || 0;
+                    input.value = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(number).replace('Rp', 'Rp ');
+                };
+
+                const unformatRupiah = (input) => {
+                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya ambil angka dan titik
+                    if (value === '') value = '0';
+                    input.value = value; // Mengembalikan ke format numerik sebelum submit
+                };
+
+                ['patokan_harga', 'total'].forEach(id => {
+                    const input = document.getElementById(id);
+                    // Tampilkan nilai awal yang sudah diformat saat halaman dimuat
+                    if (input.value) {
+                        formatRupiah(input);
+                    }
+                    input.addEventListener('input', () => formatRupiah(input));
+                    input.addEventListener('blur', () => {
+                        if (input.value === 'Rp 0.00') input.value = '';
+                    });
+                    input.addEventListener('focus', () => {
+                        if (input.value === 'Rp 0.00' || input.value === '') input.value = '';
+                    });
+                });
+
+                document.getElementById('sparepartForm').addEventListener('submit', (e) => {
+                    ['patokan_harga', 'total'].forEach(id => {
+                        const input = document.getElementById(id);
+                        unformatRupiah(input);
+                    });
+                });
+            });
+        </script>
+    @endpush
 @endsection

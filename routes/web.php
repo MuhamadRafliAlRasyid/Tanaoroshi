@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\SuperDashboardController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\PengambilanSparepartController;
+use App\Http\Controllers\GoogleController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,13 +28,19 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+
+Route::get('/google/auth', [GoogleController::class, 'auth'])->name('google.auth');
+Route::get('/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/test-sheet', [GoogleController::class, 'testSheetConnection'])->name('test.sheet');
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-Route::get('/spareparts/unduh', [SparepartController::class, 'unduh'])->name('unduh');
+Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('spareparts.sync-from-sheets');
+Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncToSheets'])->name('spareparts.sync-to-sheets');
 Route::get('/pengambilan/export/{id?}', function ($id = null) {
     return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
 })->name('pengambilan.export');
@@ -44,9 +51,9 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Routes
     Route::get('/super/dashboard', [SuperDashboardController::class, 'index'])->name('super.dashboard');
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/karyawan/dashboard', function () {
-        return view('karyawan.gudang');
-    })->name('karyawan.dashboard');
+    // Route::get('/karyawan/dashboard', function () {
+    //     return view('karyawan.gudang');
+    // })->name('karyawan.dashboard');
 
     // Sparepart Routes
     Route::prefix('spareparts')->name('spareparts.')->group(function () {
@@ -55,6 +62,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [SparepartController::class, 'store'])->name('store');
         Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
         Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
+        Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('spareparts.sync-from-sheets');
+        Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncToSheets'])->name('spareparts.sync-to-sheets');
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');

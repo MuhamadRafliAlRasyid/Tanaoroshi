@@ -19,7 +19,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('spareparts.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4">
+            <form action="{{ route('spareparts.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4"
+                id="sparepartForm">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,13 +56,15 @@
                     </div>
                     <div class="form-group">
                         <label for="patokan_harga" class="block text-sm font-medium text-gray-700">Patokan Harga</label>
-                        <input type="number" step="0.01" id="patokan_harga" name="patokan_harga" required
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        <input type="text" id="patokan_harga" name="patokan_harga" required
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                            value="Rp 1.000.000">
                     </div>
                     <div class="form-group">
                         <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
-                        <input type="number" step="0.01" id="total" name="total" required
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        <input type="text" id="total" name="total" required
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                            value="Rp 2.000.000">
                     </div>
                     <div class="form-group">
                         <label for="ruk_no" class="block text-sm font-medium text-gray-700">RUK No</label>
@@ -128,4 +131,60 @@
             </form>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const formatRupiah = (input, initialValue) => {
+                    let value = input.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+                    if (value === '') value = initialValue.replace(/[^0-9]/g,
+                    ''); // Kembali ke nilai awal jika kosong
+                    let number = parseInt(value) || parseInt(initialValue.replace(/[^0-9]/g, '')) || 0;
+                    input.value = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(number).replace('Rp', 'Rp ');
+                };
+
+                const unformatRupiah = (input) => {
+                    let value = input.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+                    if (value === '') value = '0';
+                    input.value = value; // Mengembalikan ke format numerik sebelum submit
+                };
+
+                // Inisialisasi dengan nilai awal
+                const priceInputs = [{
+                        id: 'patokan_harga',
+                        initial: '1000000'
+                    },
+                    {
+                        id: 'total',
+                        initial: '2000000'
+                    }
+                ];
+
+                priceInputs.forEach(inputConfig => {
+                    const input = document.getElementById(inputConfig.id);
+                    // Set nilai awal saat halaman dimuat
+                    formatRupiah(input, `Rp ${inputConfig.initial}`);
+                    input.addEventListener('input', () => formatRupiah(input, `Rp ${inputConfig.initial}`));
+                    input.addEventListener('blur', () => {
+                        if (input.value === 'Rp 0') input.value = `Rp ${inputConfig.initial}`;
+                    });
+                    input.addEventListener('focus', () => {
+                        if (input.value === `Rp ${inputConfig.initial}`) input.value = '';
+                    });
+                });
+
+                document.getElementById('sparepartForm').addEventListener('submit', (e) => {
+                    priceInputs.forEach(inputConfig => {
+                        const input = document.getElementById(inputConfig.id);
+                        unformatRupiah(input);
+                    });
+                });
+            });
+        </script>
+    @endpush
 @endsection

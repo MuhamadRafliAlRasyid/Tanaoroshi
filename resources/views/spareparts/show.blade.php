@@ -37,11 +37,17 @@
                     </div>
                     <div class="bg-teal-50 p-4 rounded-lg shadow-md">
                         <p class="text-gray-600 font-semibold"><i class="fas fa-dollar-sign mr-2"></i>Patokan Harga:</p>
-                        <p class="text-lg text-gray-800">{{ number_format($sparepart->patokan_harga, 2) }}</p>
+                        <p class="text-lg text-gray-800">
+                            Rp
+                            {{ number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->patokan_harga ?? '0'), 2, ',', '.') }}
+                        </p>
                     </div>
                     <div class="bg-orange-50 p-4 rounded-lg shadow-md">
                         <p class="text-gray-600 font-semibold"><i class="fas fa-money-bill-wave mr-2"></i>Total:</p>
-                        <p class="text-lg text-gray-800">{{ number_format($sparepart->total, 2) }}</p>
+                        <p class="text-lg text-gray-800">
+                            Rp
+                            {{ number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->total ?? '0'), 2, ',', '.') }}
+                        </p>
                     </div>
                     <div class="bg-pink-50 p-4 rounded-lg shadow-md">
                         <p class="text-gray-600 font-semibold"><i class="fas fa-warehouse mr-2"></i>RUK No:</p>

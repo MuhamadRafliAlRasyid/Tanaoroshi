@@ -27,16 +27,28 @@
                 </button>
             </form>
 
-            <a href="{{ route('spareparts.create') }}"
-                class="mb-6 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
-                <i class="fas fa-plus mr-2"></i> Tambah Sparepart
-            </a>
-            <div class="mb-6 text-right">
-                <a href="{{ route('spareparts.unduh') }}"
-                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
-                    <i class="fas fa-download mr-2"></i> Ekspor ke Excel
+            <!-- Tombol Tambah (kiri) dan Sync (kanan) -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+                <!-- Tombol Tambah di Kiri -->
+                <a href="{{ route('spareparts.create') }}"
+                    class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
+                    <i class="fas fa-plus mr-2"></i> Tambah Sparepart
                 </a>
+
+                <!-- Tombol Sync di Kanan -->
+                <div class="flex space-x-2">
+                    <a href="{{ route('spareparts.sync-from-sheets') }}"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
+                        <i class="fas fa-sync mr-1"></i> From Sheets
+                    </a>
+                    <a href="{{ route('spareparts.sync-to-sheets') }}"
+                        class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
+                        <i class="fas fa-sync-alt mr-1"></i> To Sheets
+                    </a>
+                </div>
             </div>
+
+            <!-- Tabel Data -->
             <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
                 <table class="w-full text-left">
                     <thead class="bg-gray-200">

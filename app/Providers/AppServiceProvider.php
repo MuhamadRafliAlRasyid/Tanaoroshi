@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Events\SparepartUpdated;
+use App\Listeners\SyncToDriveListener;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,4 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+    protected $listen = [
+        SparepartUpdated::class => [
+            SyncToDriveListener::class,
+        ],
+    ];
 }
