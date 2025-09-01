@@ -19,8 +19,8 @@ return new class extends Migration
             $table->integer('jumlah_baru')->nullable()->default(0);
             $table->integer('jumlah_bekas')->nullable()->default(0);
             $table->string('supplier')->nullable();
-            $table->decimal('patokan_harga', 12, 2)->nullable();
-            $table->decimal('total', 12, 2)->nullable()->default(0);
+            $table->decimal('patokan_harga')->nullable();
+            $table->decimal('total')->nullable()->default(0);
             $table->string('ruk_no')->nullable();
             $table->date('purchase_date')->nullable();
             $table->date('delivery_date')->nullable();
