@@ -11,7 +11,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-
 class AuthController extends Controller
 {
     /**
@@ -46,7 +45,6 @@ class AuthController extends Controller
         $userData['password'] = Hash::make($request->password);
 
         if ($request->hasFile('profile_photo')) {
-            // Pastikan direktori ada, buat jika belum
             $directory = public_path('images/profile');
             if (!file_exists($directory)) {
                 mkdir($directory, 0755, true);
@@ -107,11 +105,22 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $role = Auth::user()->role;
-            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role')); // Gunakan Log
+            $sparepartsId = $request->input('spareparts_id'); // Ambil spareparts_id dari query string jika ada
+
+            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts ID: ' . ($sparepartsId ?? 'None'));
+
+            if ($role === 'karyawan') {
+                // Jika ada spareparts_id (dari scan QR), arahkan ke halaman create pengambilan
+                if ($sparepartsId) {
+                    return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsId])->with('success', 'Login berhasil!');
+                }
+                // Jika login biasa, arahkan ke dashboard karyawan
+                return redirect('/karyawan/dashboard')->with('success', 'Login berhasil!');
+            }
+
             return match ($role) {
                 'super' => redirect('/super/dashboard')->with('success', 'Login berhasil!'),
                 'admin' => redirect('/admin/dashboard')->with('success', 'Login berhasil!'),
-                'karyawan' => redirect('/karyawan/dashboard')->with('success', 'Login berhasil!'),
                 default => redirect('/')->with('success', 'Login berhasil!'),
             };
         }

@@ -14,6 +14,7 @@ class PengambilanSparepart extends Model
         'user_id',
         'bagian_id',
         'spareparts_id',
+        'part_type',
         'jumlah',
         'satuan',
         'keperluan',

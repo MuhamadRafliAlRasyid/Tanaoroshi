@@ -13,6 +13,8 @@ use App\Http\Controllers\SuperDashboardController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\PengambilanSparepartController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\KaryawanDashboardController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -29,18 +31,17 @@ Route::get('/', function () {
 })->name('home');
 
 
-
-Route::get('/google/auth', [GoogleController::class, 'auth'])->name('google.auth');
-Route::get('/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
-Route::get('/test-sheet', [GoogleController::class, 'testSheetConnection'])->name('test.sheet');
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('sync-from-sheets');
+Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
+Route::get('/google/callback', [SparepartController::class, 'handleGoogleCallback'])->name('handleGoogleCallback');
+Route::get('/qr', [SparepartController::class, 'generateQrCode'])->name('generateQrCode');
+Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('spareparts.sync-from-sheets');
-Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncToSheets'])->name('spareparts.sync-to-sheets');
 Route::get('/pengambilan/export/{id?}', function ($id = null) {
     return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
 })->name('pengambilan.export');
@@ -51,23 +52,31 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Routes
     Route::get('/super/dashboard', [SuperDashboardController::class, 'index'])->name('super.dashboard');
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    // Route::get('/karyawan/dashboard', function () {
-    //     return view('karyawan.gudang');
-    // })->name('karyawan.dashboard');
+    Route::get('/karyawan/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
+
 
     // Sparepart Routes
     Route::prefix('spareparts')->name('spareparts.')->group(function () {
         Route::get('/', [SparepartController::class, 'index'])->name('index');
         Route::get('/create', [SparepartController::class, 'create'])->name('create');
         Route::post('/', [SparepartController::class, 'store'])->name('store');
-        Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
         Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
-        Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('spareparts.sync-from-sheets');
-        Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncToSheets'])->name('spareparts.sync-to-sheets');
+
+        // detail harus diletakkan SETELAH route spesifik lain supaya tidak menelan path lain
+        Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
+
+        // soft delete ops
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/restore', [SparepartController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force-delete', [SparepartController::class, 'forceDelete'])->name('forceDelete');
+
+        // sinkronisasi manual
+        Route::get('/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('sync-from-sheets');
+        Route::get('/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
     });
+
     // Pengambilan Sparepart Routes
     Route::prefix('pengambilan')->name('pengambilan.')->group(function () {
         Route::get('/', [PengambilanSparepartController::class, 'index'])->name('index');

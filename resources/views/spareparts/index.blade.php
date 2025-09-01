@@ -53,6 +53,7 @@
                 <table class="w-full text-left">
                     <thead class="bg-gray-200">
                         <tr>
+                            <th class="py-3 px-4 text-gray-700 font-semibold">ID</th>
                             <th class="py-3 px-4 text-gray-700 font-semibold">Nama Part</th>
                             <th class="py-3 px-4 text-gray-700 font-semibold">Model</th>
                             <th class="py-3 px-4 text-gray-700 font-semibold">Merk</th>
@@ -63,6 +64,7 @@
                     <tbody>
                         @forelse ($spareparts as $sparepart)
                             <tr class="border-b hover:bg-gray-50 transition duration-200">
+                                <td class="py-3 px-4">{{ $sparepart->id }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->nama_part }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->model }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
@@ -92,7 +94,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-4 text-center text-gray-500">Tidak ada data sparepart.</td>
+                                <td colspan="6" class="py-4 text-center text-gray-500">Tidak ada data sparepart.</td>
                             </tr>
                         @endforelse
                     </tbody>

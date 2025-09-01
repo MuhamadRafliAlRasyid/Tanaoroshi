@@ -46,14 +46,30 @@
                     </div>
                 @endif
 
-                <!-- Sparepart -->
+                <!-- Sparepart (Disabled berdasarkan QR ID) -->
                 <div>
                     <label for="spareparts_id" class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
                     <select id="spareparts_id" name="spareparts_id" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled>
                         @foreach ($spareparts as $sparepart)
                             <option value="{{ $sparepart->id }}">{{ $sparepart->nama_part }}</option>
                         @endforeach
+                    </select>
+                    <!-- Tampilkan stok bekas dan baru -->
+                    <p class="text-sm text-gray-600 mt-1">
+                        Stok Baru: {{ $spareparts->first()->jumlah_baru ?? 0 }} | Stok Bekas:
+                        {{ $spareparts->first()->jumlah_bekas ?? 0 }}
+                    </p>
+                </div>
+
+                <!-- Part Baru atau Bekas -->
+                <div>
+                    <label for="part_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Part</label>
+                    <select id="part_type" name="part_type" required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="baru">Part Baru</option>
+                        <option value="bekas">Part Bekas</option>
                     </select>
                 </div>
 

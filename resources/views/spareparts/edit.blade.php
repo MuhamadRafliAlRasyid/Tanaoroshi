@@ -154,28 +154,25 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const formatRupiah = (input) => {
-                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya ambil angka dan titik
-                    if (value === '') value = '0';
+                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya angka dan titik
+                    if (value === '' || value === '0') value = '0';
                     let number = parseFloat(value) || 0;
-                    input.value = new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
+                    input.value = 'Rp ' + number.toLocaleString('id-ID', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
-                    }).format(number).replace('Rp', 'Rp ');
+                    });
                 };
 
                 const unformatRupiah = (input) => {
-                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya ambil angka dan titik
-                    if (value === '') value = '0';
-                    input.value = value; // Mengembalikan ke format numerik sebelum submit
+                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya angka dan titik
+                    if (value === '' || isNaN(parseFloat(value))) value = '0';
+                    input.value = parseFloat(value).toString(); // Pastikan hanya angka numerik
                 };
 
                 ['patokan_harga', 'total'].forEach(id => {
                     const input = document.getElementById(id);
-                    // Tampilkan nilai awal yang sudah diformat saat halaman dimuat
                     if (input.value) {
-                        formatRupiah(input);
+                        formatRupiah(input); // Format awal saat halaman dimuat
                     }
                     input.addEventListener('input', () => formatRupiah(input));
                     input.addEventListener('blur', () => {
