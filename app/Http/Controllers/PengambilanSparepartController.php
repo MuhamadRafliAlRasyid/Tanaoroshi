@@ -2,24 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PengambilanSparepart;
+use App\Models\User;
 use App\Models\Bagian;
 use App\Models\Spareparts;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use App\Models\PengambilanSparepart;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\SparepartController;
 
 class PengambilanSparepartController extends Controller
 {
-    protected $sparepartController;
-
-    public function __construct(SparepartController $sparepartController)
-    {
-        $this->sparepartController = $sparepartController;
-    }
-
     public function index(Request $request)
     {
         $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
@@ -66,12 +59,16 @@ class PengambilanSparepartController extends Controller
             $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect();
         }
 
-        $qrSparepartId = request()->query('spareparts_id', $spareparts->first()->id ?? null);
+        // Ambil spareparts_id dari query string, jika tidak ada gunakan null sebagai default
+        $qrSparepartId = request()->query('spareparts_id');
         if ($qrSparepartId) {
             $spareparts = Spareparts::where('id', $qrSparepartId)->get();
+        } else {
+            // Jika tidak ada spareparts_id, gunakan semua spareparts atau default ke yang pertama
+            $qrSparepartId = $spareparts->first()->id ?? null;
         }
 
-        return view('pengambilan.create', compact('users', 'bagians', 'spareparts'));
+        return view('pengambilan.create', compact('users', 'bagians', 'spareparts', 'qrSparepartId'));
     }
 
     public function store(Request $request)
@@ -79,46 +76,56 @@ class PengambilanSparepartController extends Controller
         if (Auth::user()->role !== 'admin') {
             $request->merge([
                 'user_id' => Auth::user()->id,
-                'bagian_id' => Auth::user()->bagian_id ?? 1,
+                'bagian_id' => Auth::user()->bagian_id ?? 1, // Default jika null
             ]);
         }
 
         Log::info('Store Request: ', $request->all());
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'bagian_id' => 'required|exists:bagian,id',
-            'spareparts_id' => 'required|exists:spareparts,id',
-            'part_type' => 'required|in:baru,bekas',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:50',
-            'keperluan' => 'required|string|max:255',
-            'waktu_pengambilan' => 'required|date',
-        ]);
 
-        $sparepart = Spareparts::findOrFail($request->spareparts_id);
-        $jumlah = $request->jumlah;
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'bagian_id' => 'required|exists:bagian,id',
+                'spareparts_id' => 'required|exists:spareparts,id',
+                'jumlah' => 'required|integer|min:1',
+                'satuan' => 'required|string|max:50',
+                'keperluan' => 'required|string|max:255',
+                'waktu_pengambilan' => 'required|date',
+            ]);
 
-        if ($request->part_type === 'baru') {
-            $currentStock = $sparepart->jumlah_baru;
-            if ($currentStock < $jumlah) {
-                return redirect()->back()->with('error', 'Stok baru tidak mencukupi. Stok tersedia: ' . $currentStock);
+            $sparepart = Spareparts::findOrFail($request->spareparts_id);
+            $jumlah = $request->jumlah;
+
+            // Log stok saat ini untuk debugging
+            Log::info('Current Stock - Baru: ' . $sparepart->jumlah_baru . ', Bekas: ' . $sparepart->jumlah_bekas);
+
+            if ($request->part_type === 'baru') {
+                $currentStock = $sparepart->jumlah_baru;
+                if ($currentStock < $jumlah) {
+                    Log::warning('Stock insuficient for sparepart ID ' . $sparepart->id . ': Required ' . $jumlah . ', Available ' . $currentStock);
+                    return redirect()->back()->with('error', 'Stok baru tidak mencukupi. Stok tersedia: ' . $currentStock);
+                }
+                $sparepart->update(['jumlah_baru' => $currentStock - $jumlah]);
+            } elseif ($request->part_type === 'bekas') {
+                $currentStock = $sparepart->jumlah_bekas;
+                if ($currentStock < $jumlah) {
+                    Log::warning('Stock insuficient for sparepart ID ' . $sparepart->id . ': Required ' . $jumlah . ', Available ' . $currentStock);
+                    return redirect()->back()->with('error', 'Stok bekas tidak mencukupi. Stok tersedia: ' . $currentStock);
+                }
+                $sparepart->update(['jumlah_bekas' => $currentStock - $jumlah]);
             }
-            $sparepart->update(['jumlah_baru' => $currentStock - $jumlah]);
-        } elseif ($request->part_type === 'bekas') {
-            $currentStock = $sparepart->jumlah_bekas;
-            if ($currentStock < $jumlah) {
-                return redirect()->back()->with('error', 'Stok bekas tidak mencukupi. Stok tersedia: ' . $currentStock);
-            }
-            $sparepart->update(['jumlah_bekas' => $currentStock - $jumlah]);
+
+            $pengambilanSparepart = PengambilanSparepart::create($validated);
+            Log::info('Stored Pengambilan Sparepart: ', $pengambilanSparepart->toArray());
+
+            return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            Log::error('Error di store PengambilanSparepart: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
-
-        $pengambilanSparepart = PengambilanSparepart::create(array_merge($request->all(), ['part_type' => $request->part_type]));
-        Log::info('Stored Pengambilan Sparepart: ', $pengambilanSparepart->toArray());
-
-        // Sinkronisasi hanya untuk sparepart yang diambil
-        $this->sparepartController->syncPartialToSheets($request->spareparts_id);
-
-        return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
     }
 
     public function show($id)
@@ -128,6 +135,28 @@ class PengambilanSparepartController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk melihat detail ini.');
         }
         return view('pengambilan.show', compact('pengambilanSparepart'));
+    }
+
+    public function exportPdf($id = null)
+    {
+        if ($id) {
+            $pengambilanSpareparts = PengambilanSparepart::with(['user', 'sparepart'])->findOrFail($id);
+            $pengambilanSpareparts = collect([$pengambilanSpareparts]); // Konversi ke collection untuk konsistensi
+        } else {
+            $pengambilanSpareparts = PengambilanSparepart::with(['user', 'sparepart'])->get();
+        }
+
+        $pdf = Pdf::loadView('pengambilan.export-pdf', compact('pengambilanSpareparts'));
+
+        // Atur ukuran kertas dan orientasi
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'DejaVu Sans',
+        ]);
+
+        return $pdf->download('pengambilan_report_' . ($id ? 'id_' . $id : 'all') . '.pdf');
     }
 
     public function edit(PengambilanSparepart $pengambilanSparepart)
@@ -171,53 +200,55 @@ class PengambilanSparepartController extends Controller
             ]);
         }
 
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'bagian_id' => 'required|exists:bagian,id',
-            'spareparts_id' => 'required|exists:spareparts,id',
-            'part_type' => 'required|in:baru,bekas',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:50',
-            'keperluan' => 'required|string|max:255',
-            'waktu_pengambilan' => 'required|date',
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'bagian_id' => 'required|exists:bagian,id',
+                'spareparts_id' => 'required|exists:spareparts,id',
+                'part_type' => 'required|in:baru,bekas',
+                'jumlah' => 'required|integer|min:1',
+                'satuan' => 'required|string|max:50',
+                'keperluan' => 'required|string|max:255',
+                'waktu_pengambilan' => 'required|date',
+            ]);
 
-        $sparepart = Spareparts::findOrFail($request->spareparts_id);
-        $newJumlah = $request->jumlah;
-        $oldJumlah = $pengambilanSparepart->jumlah;
-        $partType = $request->part_type;
+            $sparepart = Spareparts::findOrFail($request->spareparts_id);
+            $newJumlah = $request->jumlah;
+            $oldJumlah = $pengambilanSparepart->jumlah;
+            $partType = $request->part_type;
 
-        // Kembalikan stok lama
-        if ($pengambilanSparepart->part_type === 'baru') {
-            $currentStock = $sparepart->jumlah_baru + $oldJumlah;
-            $sparepart->update(['jumlah_baru' => $currentStock]);
-        } elseif ($pengambilanSparepart->part_type === 'bekas') {
-            $currentStock = $sparepart->jumlah_bekas + $oldJumlah;
-            $sparepart->update(['jumlah_bekas' => $currentStock]);
-        }
-
-        // Kurangi stok baru berdasarkan part_type yang baru
-        if ($partType === 'baru') {
-            $currentStock = $sparepart->jumlah_baru;
-            if ($currentStock < $newJumlah) {
-                return redirect()->back()->with('error', 'Stok baru tidak mencukupi. Stok tersedia: ' . $currentStock);
+            // Kembalikan stok lama
+            if ($pengambilanSparepart->part_type === 'baru') {
+                $currentStock = $sparepart->jumlah_baru + $oldJumlah;
+                $sparepart->update(['jumlah_baru' => $currentStock]);
+            } elseif ($pengambilanSparepart->part_type === 'bekas') {
+                $currentStock = $sparepart->jumlah_bekas + $oldJumlah;
+                $sparepart->update(['jumlah_bekas' => $currentStock]);
             }
-            $sparepart->update(['jumlah_baru' => $currentStock - $newJumlah]);
-        } elseif ($partType === 'bekas') {
-            $currentStock = $sparepart->jumlah_bekas;
-            if ($currentStock < $newJumlah) {
-                return redirect()->back()->with('error', 'Stok bekas tidak mencukupi. Stok tersedia: ' . $currentStock);
+
+            // Kurangi stok baru berdasarkan part_type yang baru
+            if ($partType === 'baru') {
+                $currentStock = $sparepart->jumlah_baru;
+                if ($currentStock < $newJumlah) {
+                    return redirect()->back()->with('error', 'Stok baru tidak mencukupi. Stok tersedia: ' . $currentStock);
+                }
+                $sparepart->update(['jumlah_baru' => $currentStock - $newJumlah]);
+            } elseif ($partType === 'bekas') {
+                $currentStock = $sparepart->jumlah_bekas;
+                if ($currentStock < $newJumlah) {
+                    return redirect()->back()->with('error', 'Stok bekas tidak mencukupi. Stok tersedia: ' . $currentStock);
+                }
+                $sparepart->update(['jumlah_bekas' => $currentStock - $newJumlah]);
             }
-            $sparepart->update(['jumlah_bekas' => $currentStock - $newJumlah]);
+
+            $pengambilanSparepart->update($validated);
+            Log::info('Update Pengambilan Sparepart After: ', $pengambilanSparepart->fresh()->toArray());
+
+            return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Error di update PengambilanSparepart: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
-
-        $pengambilanSparepart->update(array_merge($request->all(), ['part_type' => $partType]));
-        Log::info('Update Pengambilan Sparepart After: ', $pengambilanSparepart->fresh()->toArray());
-
-        // Sinkronisasi hanya untuk sparepart yang diubah
-        $this->sparepartController->syncPartialToSheets($request->spareparts_id);
-
-        return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil diperbarui.');
     }
 
     public function destroy(PengambilanSparepart $pengambilanSparepart)
@@ -243,9 +274,6 @@ class PengambilanSparepartController extends Controller
 
         $pengambilanSparepart->delete();
         Log::info('Destroyed Pengambilan Sparepart ID: ', ['id' => $pengambilanSparepart->id]);
-
-        // Sinkronisasi hanya untuk sparepart yang dihapus
-        $this->sparepartController->syncPartialToSheets($pengambilanSparepart->spareparts_id);
 
         return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil dihapus.');
     }

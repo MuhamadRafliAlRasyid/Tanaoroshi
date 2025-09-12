@@ -94,6 +94,10 @@
                                 class="mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center w-full">
                                 <i class="fas fa-download mr-2"></i>Download QR Code
                             </a>
+                            <a href="{{ route('spareparts.pdf', $sparepart->id) }}"
+                                class="mt-2 inline-block bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-center w-full">
+                                <i class="fas fa-download mr-2"></i>Download PDF
+                            </a>
                         @else
                             <p class="text-red-500 text-center">QR Code belum di-generate.</p>
                         @endif

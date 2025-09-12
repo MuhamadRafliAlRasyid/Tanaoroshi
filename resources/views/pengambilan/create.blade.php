@@ -47,13 +47,23 @@
                 @endif
 
                 <!-- Sparepart (Disabled berdasarkan QR ID) -->
+                <!-- Sparepart (Disabled berdasarkan QR ID) -->
                 <div>
-                    <label for="spareparts_id" class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
-                    <select id="spareparts_id" name="spareparts_id" required
+                    <label for="spareparts_id_display"
+                        class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
+                    <!-- Input hidden untuk spareparts_id agar dikirim ke server -->
+                    <input type="hidden" name="spareparts_id"
+                        value="{{ $qrSparepartId ?? ($spareparts->first()->id ?? '') }}">
+
+                    <!-- Select untuk display saja, disabled -->
+                    <select id="spareparts_id_display" name="spareparts_id_display" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         disabled>
                         @foreach ($spareparts as $sparepart)
-                            <option value="{{ $sparepart->id }}">{{ $sparepart->nama_part }}</option>
+                            <option value="{{ $sparepart->id }}"
+                                {{ ($qrSparepartId ?? $spareparts->first()->id) == $sparepart->id ? 'selected' : '' }}>
+                                {{ $sparepart->nama_part }}
+                            </option>
                         @endforeach
                     </select>
                     <!-- Tampilkan stok bekas dan baru -->
@@ -62,7 +72,6 @@
                         {{ $spareparts->first()->jumlah_bekas ?? 0 }}
                     </p>
                 </div>
-
                 <!-- Part Baru atau Bekas -->
                 <div>
                     <label for="part_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Part</label>
@@ -78,6 +87,7 @@
                     <label for="jumlah" class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
                     <input id="jumlah" name="jumlah" type="number" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <p id="jumlah-warning" class="text-sm text-red-600 mt-1 hidden">Jumlah melebihi stok yang tersedia!</p>
                 </div>
 
                 <!-- Satuan -->
@@ -103,7 +113,7 @@
                 </div>
 
                 <div class="col-span-full flex items-center gap-4 mt-6">
-                    <button type="submit"
+                    <button type="submit" id="submit-btn"
                         class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                         <i class="fas fa-save mr-2"></i> Simpan
                     </button>
@@ -115,4 +125,35 @@
             </form>
         </section>
     </main>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const partTypeSelect = document.getElementById('part_type');
+                const jumlahInput = document.getElementById('jumlah');
+                const submitBtn = document.getElementById('submit-btn');
+                const warningMsg = document.getElementById('jumlah-warning');
+                const stockBaru = {{ $spareparts->first()->jumlah_baru ?? 0 }};
+                const stockBekas = {{ $spareparts->first()->jumlah_bekas ?? 0 }};
+
+                function checkStock() {
+                    const jumlah = parseInt(jumlahInput.value) || 0;
+                    const partType = partTypeSelect.value;
+                    const stock = (partType === 'baru') ? stockBaru : stockBekas;
+
+                    if (jumlah > stock) {
+                        warningMsg.classList.remove('hidden');
+                        submitBtn.disabled = true;
+                    } else {
+                        warningMsg.classList.add('hidden');
+                        submitBtn.disabled = false;
+                    }
+                }
+
+                partTypeSelect.addEventListener('change', checkStock);
+                jumlahInput.addEventListener('input', checkStock);
+                checkStock(); // Cek saat halaman dimuat
+            });
+        </script>
+    @endpush
 @endsection

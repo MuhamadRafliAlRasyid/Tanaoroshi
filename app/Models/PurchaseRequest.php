@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class purchaserequest extends Model
+class PurchaseRequest extends Model
 {
     use HasFactory;
 

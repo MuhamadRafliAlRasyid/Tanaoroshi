@@ -30,22 +30,21 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login/{spareparts_id}', [AuthController::class, 'login']); // Fix the double slash issue
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('sync-from-sheets');
 Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
 Route::get('/google/callback', [SparepartController::class, 'handleGoogleCallback'])->name('handleGoogleCallback');
-Route::get('/qr', [SparepartController::class, 'generateQrCode'])->name('generateQrCode');
-Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
+Route::get('/qr', [SparepartController::class, 'regenerateAllQrCodes'])->name('regenerateAllQrCodes');
+Route::get('/purchase-requests/unduh', [PurchaseRequestController::class, 'unduh'])->name('unduh');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::get('/pengambilan/export/{id?}', function ($id = null) {
     return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
 })->name('pengambilan.export');
-
 
 // Protected Routes with Auth Middleware
 Route::middleware(['auth'])->group(function () {
@@ -54,38 +53,35 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/karyawan/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
 
-
     // Sparepart Routes
     Route::prefix('spareparts')->name('spareparts.')->group(function () {
         Route::get('/', [SparepartController::class, 'index'])->name('index');
         Route::get('/create', [SparepartController::class, 'create'])->name('create');
         Route::post('/', [SparepartController::class, 'store'])->name('store');
         Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
-
-        // detail harus diletakkan SETELAH route spesifik lain supaya tidak menelan path lain
+        Route::get('/spareparts/pdf/{id}', [SparepartController::class, 'downloadPdf'])->name('pdf');
         Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
-
-        // soft delete ops
+        Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('check.stock');
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [SparepartController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [SparepartController::class, 'forceDelete'])->name('forceDelete');
-
-        // sinkronisasi manual
-        Route::get('/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('sync-from-sheets');
-        Route::get('/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
     });
+
+
 
     // Pengambilan Sparepart Routes
     Route::prefix('pengambilan')->name('pengambilan.')->group(function () {
         Route::get('/', [PengambilanSparepartController::class, 'index'])->name('index');
         Route::get('/create', [PengambilanSparepartController::class, 'create'])->name('create');
+        Route::get('/create/{spareparts_id}', [PengambilanSparepartController::class, 'create'])->name('pengambilan.create');
         Route::post('/', [PengambilanSparepartController::class, 'store'])->name('store');
         Route::get('/{id}', [PengambilanSparepartController::class, 'show'])->name('show');
-        Route::get('/pengambilan/export/{id?}', function ($id = null) {
+        Route::get('/export/{id?}', function ($id = null) {
             return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
-        })->name('pengambilan.export');
+        })->name('export');
+        Route::get('/export-pdf/{id?}', [PengambilanSparepartController::class, 'exportPdf'])->name('exportpdf');
         Route::get('/{pengambilanSparepart}/edit', [PengambilanSparepartController::class, 'edit'])->name('edit');
         Route::put('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'update'])->name('update');
         Route::delete('/{pengambilanSparepart}', [PengambilanSparepartController::class, 'destroy'])->name('destroy');
@@ -102,7 +98,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{purchaseRequest}', [PurchaseRequestController::class, 'destroy'])->name('destroy');
         Route::post('/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve'])->name('approve');
         Route::post('/{purchaseRequest}/reject', [PurchaseRequestController::class, 'reject'])->name('reject');
+        Route::get('/unduh', [PurchaseRequestController::class, 'unduh'])->name('unduh');
     });
+
 
     // User (Admin) Routes
     Route::prefix('anggota')->name('admin.')->group(function () {
@@ -120,7 +118,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [BagianController::class, 'index'])->name('index');
         Route::get('/create', [BagianController::class, 'create'])->name('create');
         Route::post('/', [BagianController::class, 'store'])->name('store');
-        // Route::get('/{id}', [BagianController::class, 'show'])->name('show');
         Route::get('/{bagian}/edit', [BagianController::class, 'edit'])->name('edit');
         Route::put('/{id}', [BagianController::class, 'update'])->name('update');
         Route::delete('/{bagian}', [BagianController::class, 'destroy'])->name('destroy');

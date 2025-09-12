@@ -36,7 +36,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:user,spv,admin,super,karyawan', // Ditambahkan 'super' dan 'karyawan'
+            'role' => 'required|in:user,spv,admin,super,karyawan',
             'bagian_id' => 'nullable|exists:bagian,id',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -72,7 +72,12 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        return view('auth.login');
+        $sparepartsId = request()->query('spareparts_id'); // Ambil dari query string (dari scan QR)
+        // Simpan spareparts_id ke sesi jika ada
+        if ($sparepartsId) {
+            session(['spareparts_id' => $sparepartsId]);
+        }
+        return view('auth.login', compact('sparepartsId'));
     }
 
     /**
@@ -102,25 +107,27 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Ambil spareparts_id dari sesi (karena query string tidak otomatis tersedia di POST)
+        $sparepartsId = session('spareparts_id') ?? $request->input('spareparts_id') ?? $request->query('spareparts_id');
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $role = Auth::user()->role;
-            $sparepartsId = $request->input('spareparts_id'); // Ambil spareparts_id dari query string jika ada
 
             Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts ID: ' . ($sparepartsId ?? 'None'));
 
-            if ($role === 'karyawan') {
-                // Jika ada spareparts_id (dari scan QR), arahkan ke halaman create pengambilan
-                if ($sparepartsId) {
-                    return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsId])->with('success', 'Login berhasil!');
-                }
-                // Jika login biasa, arahkan ke dashboard karyawan
-                return redirect('/karyawan/dashboard')->with('success', 'Login berhasil!');
+            // Prioritaskan pengalihan ke pengambilan.create jika sparepartsId ada
+            if ($sparepartsId) {
+                // Hapus sesi setelah digunakan untuk mencegah penggunaan berulang
+                $request->session()->forget('spareparts_id');
+                return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsId])->with('success', 'Login berhasil!');
             }
 
+            // Pengalihan default berdasarkan role
             return match ($role) {
                 'super' => redirect('/super/dashboard')->with('success', 'Login berhasil!'),
                 'admin' => redirect('/admin/dashboard')->with('success', 'Login berhasil!'),
+                'karyawan' => redirect('/karyawan/dashboard')->with('success', 'Login berhasil!'),
                 default => redirect('/')->with('success', 'Login berhasil!'),
             };
         }

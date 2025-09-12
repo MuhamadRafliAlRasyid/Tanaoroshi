@@ -2,11 +2,11 @@
 
 namespace App\Console;
 
+
 use Illuminate\Console\Scheduling\Schedule;
+use App\Http\Controllers\SparepartController;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Events\SparepartUpdated;
 use App\Models\Sparepart; // Gunakan model tunggal Sparepart
-use App\Models\Spareparts;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,9 +15,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            app()->make(\App\Http\Controllers\SparepartController::class)->syncToDrive();
-        })->everyMinute()->name('sync_google_sheets')->withoutOverlapping();
+        $schedule->call([new SparepartController, 'checkStock'])->daily();
     }
     /**
      * Register the commands for the application.

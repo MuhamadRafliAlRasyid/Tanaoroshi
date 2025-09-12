@@ -13,8 +13,9 @@
                 <!-- Nama Part -->
                 <div>
                     <label for="nama_part" class="block text-sm font-medium text-gray-700 mb-1">Nama Part</label>
-                    <input id="nama_part" name="nama_part" type="text" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input id="nama_part" name="nama_part" type="text" value="{{ old('nama_part', $nama_part) }}" required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        @if ($nama_part) readonly @endif />
                     @error('nama_part')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -23,8 +24,10 @@
                 <!-- Part Number -->
                 <div>
                     <label for="part_number" class="block text-sm font-medium text-gray-700 mb-1">Part Number</label>
-                    <input id="part_number" name="part_number" type="text" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input id="part_number" name="part_number" type="text" value="{{ old('part_number', $part_number) }}"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        @if ($part_number) readonly @endif />
                     @error('part_number')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -34,7 +37,7 @@
                 <div class="col-span-full">
                     <label for="link_website" class="block text-sm font-medium text-gray-700 mb-1">Link Website
                         (Opsional)</label>
-                    <input id="link_website" name="link_website" type="url"
+                    <input id="link_website" name="link_website" type="url" value="{{ old('link_website') }}"
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('link_website')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -44,7 +47,8 @@
                 <!-- Waktu Request -->
                 <div>
                     <label for="waktu_request" class="block text-sm font-medium text-gray-700 mb-1">Waktu Request</label>
-                    <input id="waktu_request" name="waktu_request" type="date" required
+                    <input id="waktu_request" name="waktu_request" type="date" value="{{ old('waktu_request') }}"
+                        required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('waktu_request')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -54,7 +58,8 @@
                 <!-- Quantity -->
                 <div>
                     <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input id="quantity" name="quantity" type="number" min="1" required
+                    <input id="quantity" name="quantity" type="number" min="1" value="{{ old('quantity') }}"
+                        required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('quantity')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -64,7 +69,7 @@
                 <!-- Satuan -->
                 <div>
                     <label for="satuan" class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                    <input id="satuan" name="satuan" type="text" required
+                    <input id="satuan" name="satuan" type="text" value="{{ old('satuan') }}" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('satuan')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -74,7 +79,7 @@
                 <!-- Mas Deliver -->
                 <div>
                     <label for="mas_deliver" class="block text-sm font-medium text-gray-700 mb-1">Mas Deliver</label>
-                    <input id="mas_deliver" name="mas_deliver" type="date" required
+                    <input id="mas_deliver" name="mas_deliver" type="date" value="{{ old('mas_deliver') }}" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('mas_deliver')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -84,7 +89,7 @@
                 <!-- Untuk Apa -->
                 <div class="col-span-full">
                     <label for="untuk_apa" class="block text-sm font-medium text-gray-700 mb-1">Untuk Apa</label>
-                    <input id="untuk_apa" name="untuk_apa" type="text" required
+                    <input id="untuk_apa" name="untuk_apa" type="text" value="{{ old('untuk_apa') }}" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('untuk_apa')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -94,7 +99,7 @@
                 <!-- PIC -->
                 <div>
                     <label for="pic" class="block text-sm font-medium text-gray-700 mb-1">PIC</label>
-                    <input id="pic" name="pic" type="text" required
+                    <input id="pic" name="pic" type="text" value="{{ old('pic') }}" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('pic')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -106,6 +111,7 @@
                     <label for="quotation_lead_time" class="block text-sm font-medium text-gray-700 mb-1">Quotation Lead
                         Time (Opsional)</label>
                     <input id="quotation_lead_time" name="quotation_lead_time" type="text"
+                        value="{{ old('quotation_lead_time') }}"
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('quotation_lead_time')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

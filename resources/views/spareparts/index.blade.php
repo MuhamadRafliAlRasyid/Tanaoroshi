@@ -37,13 +37,10 @@
 
                 <!-- Tombol Sync di Kanan -->
                 <div class="flex space-x-2">
-                    <a href="{{ route('spareparts.sync-from-sheets') }}"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
-                        <i class="fas fa-sync mr-1"></i> From Sheets
-                    </a>
-                    <a href="{{ route('spareparts.sync-to-sheets') }}"
+
+                    <a href="{{ route('spareparts.unduh') }}"
                         class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
-                        <i class="fas fa-sync-alt mr-1"></i> To Sheets
+                        <i class="fas fa-sync-alt mr-1"></i> Unduh
                     </a>
                 </div>
             </div>

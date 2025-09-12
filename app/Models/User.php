@@ -21,6 +21,7 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -38,6 +39,10 @@ class User extends Authenticatable
     public function bagian()
     {
         return $this->belongsTo(Bagian::class);
+    }
+    public function routeNotificationForSlack($notification)
+    {
+        return env('SLACK_WEBHOOK_URL');
     }
     /**
      * The attributes that should be hidden for serialization.

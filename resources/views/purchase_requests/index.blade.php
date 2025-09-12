@@ -37,10 +37,11 @@
                         class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-105 flex items-center">
                         <i class="fas fa-plus mr-2"></i> Tambah Purchase Request
                     </a>
-                    <button onclick="window.print()"
+                    <a href="{{ route('purchase_requests.unduh') }}"
                         class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700 transition transform hover:scale-105 flex items-center">
-                        <i class="fas fa-print mr-2"></i> Cetak
-                    </button>
+                        <i class="fas fa-file-excel mr-2"></i> Export to Excel
+                    </a>
+
                 </div>
             </div>
 

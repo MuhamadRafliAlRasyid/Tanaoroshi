@@ -78,7 +78,7 @@
                                             </button>
                                         </form>
                                     @endif
-                                    <a href="{{ route('pengambilan.export', $item->id) }}"
+                                    <a href="{{ route('pengambilan.exportpdf', $item->id) }}"
                                         class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 flex items-center text-sm font-medium transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Eksport Data">
                                         <i class="fas fa-download mr-1"></i> Eksport

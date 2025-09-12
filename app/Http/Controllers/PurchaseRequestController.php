@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseRequest; // Ubah dari PurchaseRequests
+use App\Models\Spareparts;
 use Illuminate\Http\Request;
+use App\Models\PurchaseRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PurchaseRequestExport;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PurchaseRequestController extends Controller
 {
@@ -37,13 +42,27 @@ class PurchaseRequestController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         // Hanya admin yang bisa create
         if (Auth::user()->role !== 'admin') {
             abort(403);
         }
-        return view('purchase_requests.create');
+
+        $sparepart = null;
+        $nama_part = '';
+        $part_number = '';
+
+        // Ambil sparepart_id dari query string jika ada
+        if ($request->has('sparepart_id')) {
+            $sparepart = Spareparts::find($request->sparepart_id);
+            if ($sparepart) {
+                $nama_part = $sparepart->nama_part;
+                $part_number = $sparepart->model; // Asumsi model sebagai part_number, sesuaikan jika berbeda
+            }
+        }
+
+        return view('purchase_requests.create', compact('nama_part', 'part_number'));
     }
 
     /**
@@ -51,7 +70,6 @@ class PurchaseRequestController extends Controller
      */
     public function store(Request $request)
     {
-        // Hanya admin yang bisa store
         if (Auth::user()->role !== 'admin') {
             abort(403);
         }
@@ -74,7 +92,6 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest = PurchaseRequest::create($validated);
 
-        // Tambah log created
         $purchaseRequest->logs()->create([
             'action' => 'created',
             'notes' => 'Request dibuat oleh admin.',
@@ -193,5 +210,28 @@ class PurchaseRequestController extends Controller
         ]);
 
         return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil ditolak.');
+    }
+
+    /**
+     * Export purchase requests to Excel
+     */
+    public function unduh(): BinaryFileResponse
+    {
+        Log::info('excel method started for purchase requests export');
+
+        try {
+            Log::info('Attempting to initialize PurchaseRequestExport');
+            $export = new PurchaseRequestExport();
+            Log::info('PurchaseRequestExport initialized successfully');
+
+            Log::info('Starting Excel download process');
+            $response = Excel::download($export, 'purchase_requests.xlsx');
+            Log::info('Excel download process completed successfully');
+
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('Error in excel method: ' . $e->getMessage());
+            throw $e; // Re-throw to ensure the error is visible in the response
+        }
     }
 }

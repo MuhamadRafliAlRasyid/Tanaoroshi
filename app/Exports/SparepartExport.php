@@ -9,18 +9,22 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithDrawings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class SparepartExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents
+class SparepartExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents, WithDrawings
 {
+    protected $rows;
+
     public function collection()
     {
         Log::info('Collecting spareparts data');
-        $data = Spareparts::all();
-        Log::info('Collected ' . $data->count() . ' records');
-        return $data;
+        $this->rows = Spareparts::all();
+        Log::info('Collected ' . $this->rows->count() . ' records');
+        return $this->rows;
     }
 
     public function headings(): array
@@ -44,6 +48,7 @@ class SparepartExport implements FromCollection, WithHeadings, WithMapping, With
             'JUMLAH PESANAN',
             'CEK',
             'PIC',
+            'QR CODE',
         ];
     }
 
@@ -67,6 +72,7 @@ class SparepartExport implements FromCollection, WithHeadings, WithMapping, With
             $row->jumlah_pesanan ?? 0,
             $row->cek ? '〇' : '×',
             $row->pic ?? 'Jafar',
+            '' // Kosong, nanti diganti dengan gambar QR
         ];
     }
 
@@ -88,16 +94,59 @@ class SparepartExport implements FromCollection, WithHeadings, WithMapping, With
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
 
-                // Auto-fit semua kolom berdasarkan konten terpanjang
-                for ($col = 'A'; $col <= $highestColumn; $col++) {
-                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                // Set manual width kolom agar lebih rapih
+                $sheet->getColumnDimension('B')->setWidth(25); // NAMA PART
+                $sheet->getColumnDimension('C')->setWidth(18); // MODEL
+                $sheet->getColumnDimension('D')->setWidth(18); // MERK
+                $sheet->getColumnDimension('E')->setWidth(15); // JUMLAH BARU
+                $sheet->getColumnDimension('F')->setWidth(15); // JUMLAH BEKAS
+                $sheet->getColumnDimension('G')->setWidth(25); // SUPPLIER
+                $sheet->getColumnDimension('H')->setWidth(20); // PATOKAN HARGA
+                $sheet->getColumnDimension('I')->setWidth(20); // TOTAL
+                $sheet->getColumnDimension('J')->setWidth(15); // RUK No
+                $sheet->getColumnDimension('K')->setWidth(20); // PURCHASE DATE
+                $sheet->getColumnDimension('L')->setWidth(20); // DELIVERY DATE
+                $sheet->getColumnDimension('M')->setWidth(20); // PO NUMBER
+
+                // Kolom QR Code fixed width
+                $sheet->getColumnDimension('R')->setWidth(18);
+
+                // Sesuaikan tinggi baris agar QR tidak terpotong
+                for ($row = 2; $row <= $highestRow; $row++) {
+                    $sheet->getRowDimension($row)->setRowHeight(60);
                 }
 
-                // Tambahkan filter pada header (dari baris 1 sampai kolom terakhir)
+                // Tambahkan filter otomatis
+                $highestColumn = $sheet->getHighestColumn();
                 $sheet->setAutoFilter('A1:' . $highestColumn . $highestRow);
             },
         ];
+    }
+
+    public function drawings()
+    {
+        $drawings = [];
+        $rowIndex = 2; // mulai dari baris ke-2 (karena baris 1 adalah heading)
+
+        foreach ($this->rows as $row) {
+            if ($row->qr_code && file_exists(storage_path('app/public/' . $row->qr_code))) {
+                $drawing = new Drawing();
+                $drawing->setName('QR Code');
+                $drawing->setDescription('QR Code for ' . $row->nama_part);
+                $drawing->setPath(storage_path('app/public/' . $row->qr_code));
+                $drawing->setHeight(50); // QR tinggi 50px biar pas
+                $drawing->setCoordinates('R' . $rowIndex);
+
+                // Biar QR code center
+                $drawing->setOffsetX(25);
+                $drawing->setOffsetY(5);
+
+                $drawings[] = $drawing;
+            }
+            $rowIndex++;
+        }
+
+        return $drawings;
     }
 }
