@@ -5,8 +5,8 @@
 @section('content')
     <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
         <div class="w-full max-w-2xl">
-            <h2 class="text-3xl font-bold text-yellow-700 mb-6 text-center border-b-2 border-yellow-200 pb-2">
-                <i class="fas fa-edit mr-2"></i>Edit Sparepart
+            <h2 class="text-3xl font-bold text-blue-700 mb-6 text-center border-b-2 border-blue-200 pb-2">
+                <i class="fas fa-edit mr-2"></i> Edit Sparepart
             </h2>
 
             @if ($errors->any())
@@ -63,17 +63,18 @@
                     </div>
                     <div class="form-group">
                         <label for="patokan_harga" class="block text-sm font-medium text-gray-700">Patokan Harga</label>
-                        <input type="text" id="patokan_harga" name="patokan_harga" required
+                        <input type="text" id="patokan_harga" name="patokan_harga"
+                            value="{{ old('patokan_harga', number_format($sparepart->patokan_harga ?? 0, 0, '', '')) }}"
+                            required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            value="{{ old('patokan_harga', $sparepart->patokan_harga ? 'Rp ' . number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->patokan_harga ?? '0'), 2, '.', ',') : '') }}"
-                            placeholder="Masukkan nominal">
+                            placeholder="Masukkan angka saja">
                     </div>
                     <div class="form-group">
                         <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
-                        <input type="text" id="total" name="total" required
+                        <input type="text" id="total" name="total"
+                            value="{{ old('total', number_format($sparepart->total ?? 0, 0, '', '')) }}" required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            value="{{ old('total', $sparepart->total ? 'Rp ' . number_format((float) preg_replace('/[^0-9.]/', '', $sparepart->total ?? '0'), 2, '.', ',') : '') }}"
-                            placeholder="Masukkan nominal">
+                            placeholder="Masukkan angka saja">
                     </div>
                     <div class="form-group">
                         <label for="ruk_no" class="block text-sm font-medium text-gray-700">RUK No</label>
@@ -84,15 +85,19 @@
                     <div class="form-group">
                         <label for="purchase_date" class="block text-sm font-medium text-gray-700">Purchase Date</label>
                         <input type="date" id="purchase_date" name="purchase_date"
-                            value="{{ old('purchase_date', $sparepart->purchase_date) }}" required
+                            value="{{ old('purchase_date', $sparepart->purchase_date ? \Carbon\Carbon::parse($sparepart->purchase_date)->format('Y-m-d') : '') }}"
+                            required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
+
                     <div class="form-group">
                         <label for="delivery_date" class="block text-sm font-medium text-gray-700">Delivery Date</label>
                         <input type="date" id="delivery_date" name="delivery_date"
-                            value="{{ old('delivery_date', $sparepart->delivery_date) }}" required
+                            value="{{ old('delivery_date', $sparepart->delivery_date ? \Carbon\Carbon::parse($sparepart->delivery_date)->format('Y-m-d') : '') }}"
+                            required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
+
                     <div class="form-group">
                         <label for="po_number" class="block text-sm font-medium text-gray-700">PO Number</label>
                         <input type="text" id="po_number" name="po_number"
@@ -126,13 +131,6 @@
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                     <div class="form-group">
-                        <label for="location" class="block text-sm font-medium text-gray-700">Lokasi</label>
-                        <input type="text" id="location" name="location"
-                            value="{{ old('location', $sparepart->location) }}"
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            placeholder="Contoh: Lemari A-1">
-                    </div>
-                    <div class="form-group">
                         <label for="qr_code" class="block text-sm font-medium text-gray-700">QR Code (Opsional)</label>
                         <input type="text" id="qr_code" name="qr_code"
                             value="{{ old('qr_code', $sparepart->qr_code) }}"
@@ -142,8 +140,8 @@
 
                 <div class="mt-6 text-center">
                     <button type="submit"
-                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
-                        <i class="fas fa-save mr-2"></i>Update
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                        <i class="fas fa-save mr-2"></i> Update
                     </button>
                 </div>
             </form>
@@ -153,39 +151,52 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const formatRupiah = (input) => {
-                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya angka dan titik
-                    if (value === '' || value === '0') value = '0';
-                    let number = parseFloat(value) || 0;
-                    input.value = 'Rp ' + number.toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
+                const formatRupiah = (input, initialValue) => {
+                    let value = input.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+                    if (value === '') value = initialValue.replace(/[^0-9]/g,
+                        ''); // Kembali ke nilai awal jika kosong
+                    let number = parseInt(value) || parseInt(initialValue.replace(/[^0-9]/g, '')) || 0;
+                    input.value = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(number).replace('Rp', 'Rp ');
                 };
 
                 const unformatRupiah = (input) => {
-                    let value = input.value.replace(/[^0-9.]/g, ''); // Hanya angka dan titik
-                    if (value === '' || isNaN(parseFloat(value))) value = '0';
-                    input.value = parseFloat(value).toString(); // Pastikan hanya angka numerik
+                    let value = input.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+                    if (value === '') value = '0';
+                    input.value = value; // Mengembalikan ke format numerik sebelum submit
                 };
 
-                ['patokan_harga', 'total'].forEach(id => {
-                    const input = document.getElementById(id);
-                    if (input.value) {
-                        formatRupiah(input); // Format awal saat halaman dimuat
+                // Inisialisasi dengan nilai awal dari database
+                const priceInputs = [{
+                        id: 'patokan_harga',
+                        initial: '{{ number_format($sparepart->patokan_harga ?? 0, 0, '', '') }}'
+                    },
+                    {
+                        id: 'total',
+                        initial: '{{ number_format($sparepart->total ?? 0, 0, '', '') }}'
                     }
-                    input.addEventListener('input', () => formatRupiah(input));
+                ];
+
+                priceInputs.forEach(inputConfig => {
+                    const input = document.getElementById(inputConfig.id);
+                    // Set nilai awal saat halaman dimuat
+                    formatRupiah(input, `Rp ${inputConfig.initial}`);
+                    input.addEventListener('input', () => formatRupiah(input, `Rp ${inputConfig.initial}`));
                     input.addEventListener('blur', () => {
-                        if (input.value === 'Rp 0.00') input.value = '';
+                        if (input.value === 'Rp 0') input.value = `Rp ${inputConfig.initial}`;
                     });
                     input.addEventListener('focus', () => {
-                        if (input.value === 'Rp 0.00' || input.value === '') input.value = '';
+                        if (input.value === `Rp ${inputConfig.initial}`) input.value = '';
                     });
                 });
 
                 document.getElementById('sparepartForm').addEventListener('submit', (e) => {
-                    ['patokan_harga', 'total'].forEach(id => {
-                        const input = document.getElementById(id);
+                    priceInputs.forEach(inputConfig => {
+                        const input = document.getElementById(inputConfig.id);
                         unformatRupiah(input);
                     });
                 });

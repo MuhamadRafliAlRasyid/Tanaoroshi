@@ -33,31 +33,29 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:user,spv,admin,super,karyawan',
-            'bagian_id' => 'nullable|exists:bagian,id',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role'     => 'required|in:admin,karyawan,super',
+            'bagian_id' => 'nullable|exists:bagians,id',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $userData = $request->only(['name', 'email', 'role', 'bagian_id']);
-        $userData['password'] = Hash::make($request->password);
+        $data = $request->only(['name', 'email', 'role', 'bagian_id']);
+        $data['password'] = Hash::make($request->password);
 
         if ($request->hasFile('profile_photo')) {
             $directory = public_path('images/profile');
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true);
-            }
+            if (!file_exists($directory)) mkdir($directory, 0755, true);
 
             $fileName = Str::random(10) . '.' . $request->file('profile_photo')->getClientOriginalExtension();
             $request->file('profile_photo')->move($directory, $fileName);
-            $userData['profile_photo_path'] = $fileName;
+            $data['profile_photo_path'] = $fileName;
         }
 
-        User::create($userData);
+        User::create($data);
 
-        return match ($userData['role']) {
+        return match ($data['role']) {
             'super' => redirect('/super/dashboard')->with('success', 'Registrasi berhasil!'),
             'admin' => redirect('/admin/dashboard')->with('success', 'Registrasi berhasil!'),
             'karyawan' => redirect('/karyawan/dashboard')->with('success', 'Registrasi berhasil!'),

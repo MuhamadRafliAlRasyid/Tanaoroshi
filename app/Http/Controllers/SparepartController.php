@@ -46,7 +46,6 @@ class SparepartController extends Controller
 
     public function index(Request $request)
     {
-
         $query = Spareparts::query();
 
         if ($request->has('search')) {
@@ -73,20 +72,32 @@ class SparepartController extends Controller
                     ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
-        $criticalSpareparts = Spareparts::whereColumn('jumlah_baru', '<=', 'titik_pesanan')->get();
-
-        if ($criticalSpareparts->isEmpty()) {
-            Log::info('No critical stock found during check.');
-            return response()->json(['message' => 'No critical stock found.']);
-        }
-
-        $admins = User::where('role', 'admin')->get();
-        foreach ($criticalSpareparts as $sparepart) {
-            Log::info("Sending notification for sparepart ID: {$sparepart->id}, Jumlah Baru: {$sparepart->jumlah_baru}, Titik Pesanan: {$sparepart->titik_pesanan}");
-            Notification::send($admins, new SparepartCriticalNotification($sparepart));
-        }
 
         $spareparts = $query->paginate(10)->withQueryString();
+
+        // Admins
+        $admins = User::where('role', 'admin')->get();
+
+        foreach ($spareparts as $sparepart) {
+            if ($sparepart->jumlah_baru <= $sparepart->titik_pesanan) {
+                // Kirim notif kalau kritis
+                if (!$sparepart->last_notified_at || $sparepart->updated_at > $sparepart->last_notified_at) {
+                    Notification::send($admins, new SparepartCriticalNotification($sparepart));
+                    $sparepart->update(['last_notified_at' => now()]);
+                }
+            } else {
+                // Jika stok sudah normal, hapus notif lama
+                \DB::table('notifications')
+                    ->where('type', \App\Notifications\SparepartCriticalNotification::class)
+                    ->whereJsonContains('data->sparepart_id', $sparepart->id)
+                    ->delete();
+
+                // Reset flag notif
+                if ($sparepart->last_notified_at) {
+                    $sparepart->update(['last_notified_at' => null]);
+                }
+            }
+        }
 
         return view('spareparts.index', compact('spareparts'));
     }
@@ -95,35 +106,81 @@ class SparepartController extends Controller
     {
         return view('spareparts.create');
     }
-
     public function store(Request $request)
     {
+        Log::debug('Entering SparepartController@store');
         $validated = $request->validate([
             'nama_part' => 'required|string|max:255',
             'model' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
-            'jumlah_baru' => 'required|integer',
-            'jumlah_bekas' => 'required|integer',
+            'jumlah_baru' => 'required|numeric',
+            'jumlah_bekas' => 'required|numeric',
             'supplier' => 'required|string|max:255',
-            'patokan_harga' => 'required',
-            'total' => 'required',
+            'patokan_harga' => 'required|numeric',
+            'total' => 'required|numeric',
             'ruk_no' => 'required|string|max:255',
             'purchase_date' => 'required|date',
             'delivery_date' => 'required|date',
             'po_number' => 'required|string|max:255',
             'titik_pesanan' => 'required|string|max:255',
-            'jumlah_pesanan' => 'required|integer',
+            'jumlah_pesanan' => 'required|numeric',
             'cek' => 'required|boolean',
             'pic' => 'required|string|max:255',
-            'location' => 'nullable|string|max:255',
             'qr_code' => 'nullable|string',
         ]);
 
-        $validated['location'] = $validated['ruk_no'];
-        $sparepart = Spareparts::create($validated);
-        $this->generateQrCode($sparepart, $sparepart->ruk_no);
+        Log::debug('Raw request data: ', $request->all());
+        Log::debug('Validated data: ', $validated);
 
+        $sparepart = Spareparts::create($validated);
+        Log::debug('Created sparepart with ID: ' . $sparepart->id);
+
+        $this->generateQrCode($sparepart, $sparepart->ruk_no);
+        Log::debug('Generated QR code for sparepart ID: ' . $sparepart->id);
+
+        Log::debug('Exiting SparepartController@store');
         return redirect()->route('spareparts.index')->with('success', 'Sparepart created successfully.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        Log::debug('Entering SparepartController@update for ID: ' . $id);
+        $sparepart = Spareparts::findOrFail($id);
+        $requestData = $request->all();
+
+        Log::debug('Raw request data: ', $requestData);
+
+        $validated = $request->validate([
+            'nama_part' => 'required|string|max:255',
+            'model' => 'required|string|max:255',
+            'merk' => 'required|string|max:255',
+            'jumlah_baru' => 'required|numeric',
+            'jumlah_bekas' => 'required|numeric',
+            'supplier' => 'required|string|max:255',
+            'patokan_harga' => 'required|numeric',
+            'total' => 'required|numeric',
+            'ruk_no' => 'required|string|max:255',
+            'purchase_date' => 'required|date',
+            'delivery_date' => 'required|date',
+            'po_number' => 'required|string|max:255',
+            'titik_pesanan' => 'required|string|max:255',
+            'jumlah_pesanan' => 'required|numeric',
+            'cek' => 'required|boolean',
+            'pic' => 'required|string|max:255',
+            'qr_code' => 'nullable|string',
+        ]);
+
+        Log::debug('Validated data before update: ', $validated);
+
+        $sparepart->update($validated);
+        Log::debug('Data sent to update: ', $validated);
+        Log::debug('Updated sparepart with ID: ' . $id);
+
+        $this->generateQrCode($sparepart, $sparepart->ruk_no);
+        Log::debug('Regenerated QR code for sparepart ID: ' . $id);
+
+        Log::debug('Exiting SparepartController@update');
+        return redirect()->route('spareparts.index')->with('success', 'Sparepart updated successfully.');
     }
 
     public function show($id)
@@ -138,40 +195,7 @@ class SparepartController extends Controller
         return view('spareparts.edit', compact('sparepart'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $sparepart = Spareparts::findOrFail($id);
-        $requestData = $request->all();
-        $requestData['patokan_harga'] = $this->normalizeNumber($requestData['patokan_harga']);
-        $requestData['total'] = $this->normalizeNumber($requestData['total']);
-        $requestData['location'] = $requestData['ruk_no'];
 
-        $validated = $request->validate([
-            'nama_part' => 'required|string|max:255',
-            'model' => 'required|string|max:255',
-            'merk' => 'required|string|max:255',
-            'jumlah_baru' => 'required|integer',
-            'jumlah_bekas' => 'required|integer',
-            'supplier' => 'required|string|max:255',
-            'patokan_harga' => 'required',
-            'total' => 'required',
-            'ruk_no' => 'required|string|max:255',
-            'purchase_date' => 'required|date',
-            'delivery_date' => 'required|date',
-            'po_number' => 'required|string|max:255',
-            'titik_pesanan' => 'required|string|max:255',
-            'jumlah_pesanan' => 'required|integer',
-            'cek' => 'required|boolean',
-            'pic' => 'required|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'qr_code' => 'nullable|string',
-        ]);
-
-        $sparepart->update($validated);
-        $this->generateQrCode($sparepart, $sparepart->ruk_no);
-
-        return redirect()->route('spareparts.index')->with('success', 'Sparepart updated successfully.');
-    }
 
     public function destroy($id)
     {
@@ -247,6 +271,17 @@ class SparepartController extends Controller
             Log::error('Error generating QR for ID ' . $sparepart->id . ': ' . $e->getMessage());
             throw $e;
         }
+    }
+    public function regenerateQrCode($id)
+    {
+        Log::debug('Entering SparepartController@regenerateQrCode for ID: ' . $id);
+        $sparepart = Spareparts::findOrFail($id);
+
+        $this->generateQrCode($sparepart, $sparepart->ruk_no);
+        Log::debug('Regenerated QR code for sparepart ID: ' . $id);
+
+        Log::debug('Exiting SparepartController@regenerateQrCode');
+        return redirect()->back()->with('success', 'QR code regenerated successfully for sparepart ID: ' . $id);
     }
 
     public function regenerateAllQrCodes()

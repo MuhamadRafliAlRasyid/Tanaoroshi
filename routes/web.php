@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [SparepartController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
+        Route::get('/{id}/regenerate-qr', [SparepartController::class, 'regenerateQrCode'])->name('regenerateQrCode');
         Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('check.stock');
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [SparepartController::class, 'restore'])->name('restore');

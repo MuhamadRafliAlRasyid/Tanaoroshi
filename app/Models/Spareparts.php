@@ -32,56 +32,103 @@ class Spareparts extends Model
         'cek',
         'pic',
         'qr_code',
-        'location',
+        'last_notified_at'
     ];
 
+    protected $casts = [
+        'cek' => 'boolean',
+        'patokan_harga' => 'float',
+        'total' => 'float',
+        'purchase_date' => 'date',
+        'delivery_date' => 'date',
+        'jumlah_baru' => 'integer',
+        'jumlah_bekas' => 'integer',
+        'jumlah_pesanan' => 'integer'
+    ];
 
-
-    // Setter methods (sudah ada, tidak perlu diubah)
+    /* ===========================
+     * SETTER METHODS
+     * =========================== */
     public function setJumlahBaruAttribute($value)
     {
-        $this->attributes['jumlah_baru'] = (int)$this->normalizeNumber($value);
+        $this->attributes['jumlah_baru'] = (int) $this->normalizeNumber($value);
     }
+
     public function setJumlahBekasAttribute($value)
     {
-        $this->attributes['jumlah_bekas'] = (int)$this->normalizeNumber($value);
+        $this->attributes['jumlah_bekas'] = (int) $this->normalizeNumber($value);
     }
+
     public function setPatokanHargaAttribute($value)
     {
-        $this->attributes['patokan_harga'] = (float)$this->normalizeNumber($value);
+        $this->attributes['patokan_harga'] = (float) $this->normalizeNumber($value);
     }
+
     public function setTotalAttribute($value)
     {
-        $this->attributes['total'] = (float)$this->normalizeNumber($value);
+        $this->attributes['total'] = (float) $this->normalizeNumber($value);
     }
+
     public function setJumlahPesananAttribute($value)
     {
-        $this->attributes['jumlah_pesanan'] = (int)$this->normalizeNumber($value);
+        $this->attributes['jumlah_pesanan'] = (int) $this->normalizeNumber($value);
     }
+
     public function setPurchaseDateAttribute($value)
     {
         $this->attributes['purchase_date'] = $this->normalizeDate($value);
     }
+
     public function setDeliveryDateAttribute($value)
     {
         $this->attributes['delivery_date'] = $this->normalizeDate($value);
     }
+
     public function setCekAttribute($value)
     {
         $this->attributes['cek'] = $this->parseBool($value);
     }
 
-    // Normalization methods (tidak diubah)
+    /* ===========================
+     * NORMALIZATION METHODS
+     * =========================== */
     private function normalizeNumber($value)
-    { /* ... */
-    }
-    private function normalizeDate($value)
-    { /* ... */
-    }
-    private function parseBool($value)
-    { /* ... */
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        // Hilangkan karakter selain angka, titik, koma, minus
+        $value = preg_replace('/[^0-9.,-]/', '', $value);
+
+        // Ganti koma jadi titik untuk decimal
+        $value = str_replace(',', '.', $value);
+
+        return is_numeric($value) ? $value : 0;
     }
 
+    private function normalizeDate($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            Log::warning("Invalid date format: " . $value);
+            return null;
+        }
+    }
+
+    private function parseBool($value)
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? 0;
+    }
+
+    /* ===========================
+     * RELATIONS
+     * =========================== */
     public function pengambilanBarangs()
     {
         return $this->hasMany(PengambilanSparepart::class);

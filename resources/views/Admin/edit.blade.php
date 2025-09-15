@@ -19,7 +19,7 @@
                 <div class="col-span-full flex items-center gap-6 mb-6">
                     <img id="current_photo" alt="User profile"
                         class="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
-                        src="{{ $user->profile_photo_path ? asset('img/profile_photo/' . $user->profile_photo_path) : asset('images/avatar.png') }}" />
+                        src="{{ $user->profile_photo_path ? asset('images/profile/' . $user->profile_photo_path) : asset('images/avatar.png') }}" />
                     <label for="profile_photo"
                         class="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 cursor-pointer transition">
                         <i class="fas fa-upload"></i> Ganti Foto

@@ -6,7 +6,7 @@
     <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
         <div class="w-full max-w-2xl">
             <h2 class="text-3xl font-bold text-green-700 mb-6 text-center border-b-2 border-green-200 pb-2">
-                <i class="fas fa-plus-circle mr-2"></i>Tambah Sparepart Baru
+                <i class="fas fa-plus-circle mr-2"></i> Tambah Sparepart Baru
             </h2>
 
             @if ($errors->any())
@@ -58,13 +58,13 @@
                         <label for="patokan_harga" class="block text-sm font-medium text-gray-700">Patokan Harga</label>
                         <input type="text" id="patokan_harga" name="patokan_harga" required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            value="Rp 1.000.000">
+                            placeholder="Masukkan angka saja">
                     </div>
                     <div class="form-group">
                         <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
                         <input type="text" id="total" name="total" required
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            value="Rp 2.000.000">
+                            placeholder="Masukkan angka saja">
                     </div>
                     <div class="form-group">
                         <label for="ruk_no" class="block text-sm font-medium text-gray-700">RUK No</label>
@@ -110,12 +110,6 @@
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                     <div class="form-group">
-                        <label for="location" class="block text-sm font-medium text-gray-700">Lokasi</label>
-                        <input type="text" id="location" name="location"
-                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            placeholder="Contoh: Lemari A-1">
-                    </div>
-                    <div class="form-group">
                         <label for="qr_code" class="block text-sm font-medium text-gray-700">QR Code (Opsional)</label>
                         <input type="text" id="qr_code" name="qr_code"
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
@@ -125,7 +119,7 @@
                 <div class="mt-6 text-center">
                     <button type="submit"
                         class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
-                        <i class="fas fa-save mr-2"></i>Simpan
+                        <i class="fas fa-save mr-2"></i> Simpan
                     </button>
                 </div>
             </form>

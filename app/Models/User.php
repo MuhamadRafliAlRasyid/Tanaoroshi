@@ -40,6 +40,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Bagian::class);
     }
+
     public function routeNotificationForSlack($notification)
     {
         return env('SLACK_WEBHOOK_URL');

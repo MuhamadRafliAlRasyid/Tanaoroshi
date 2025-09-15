@@ -27,7 +27,7 @@
                 </button>
             </form>
 
-            <!-- Tombol Tambah (kiri) dan Sync (kanan) -->
+            <!-- Tombol Tambah (kiri) dan Unduh (kanan) -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
                 <!-- Tombol Tambah di Kiri -->
                 <a href="{{ route('spareparts.create') }}"
@@ -35,12 +35,11 @@
                     <i class="fas fa-plus mr-2"></i> Tambah Sparepart
                 </a>
 
-                <!-- Tombol Sync di Kanan -->
+                <!-- Tombol Unduh di Kanan -->
                 <div class="flex space-x-2">
-
                     <a href="{{ route('spareparts.unduh') }}"
                         class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
-                        <i class="fas fa-sync-alt mr-1"></i> Unduh
+                        <i class="fas fa-download mr-1"></i> Unduh
                     </a>
                 </div>
             </div>

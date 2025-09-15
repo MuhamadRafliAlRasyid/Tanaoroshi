@@ -133,7 +133,7 @@
                     <button @click="open = !open"
                         class="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-full transition" aria-label="User Menu"
                         aria-haspopup="true" aria-expanded="open">
-                        <img src="{{ asset('img/profile_photo/' . Auth::user()->profile_photo_path) }}"
+                        <img src="{{ asset('images/profile/' . Auth::user()->profile_photo_path) }}"
                             class="w-8 h-8 rounded-full border" alt="User Avatar"
                             onerror="this.src='{{ asset('images/avatar.png') }}'">
                         <div class="text-sm text-gray-700">
