@@ -41,6 +41,11 @@
                         class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
                         <i class="fas fa-download mr-1"></i> Unduh
                     </a>
+                    <a href="{{ route('spareparts.trashed') }}"
+                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center"
+                        title="Lihat Sparepart Terhapus">
+                        <i class="fas fa-trash-alt mr-1"></i> Terhapus
+                    </a>
                 </div>
             </div>
 

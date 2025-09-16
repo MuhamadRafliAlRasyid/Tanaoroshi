@@ -78,7 +78,7 @@
 
                 <!-- Mas Deliver -->
                 <div>
-                    <label for="mas_deliver" class="block text-sm font-medium text-gray-700 mb-1">Mas Deliver</label>
+                    <label for="mas_deliver" class="block text-sm font-medium text-gray-700 mb-1">Waktu Deliver</label>
                     <input id="mas_deliver" name="mas_deliver" type="date" value="{{ old('mas_deliver') }}" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     @error('mas_deliver')

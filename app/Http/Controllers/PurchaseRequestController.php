@@ -122,9 +122,9 @@ class PurchaseRequestController extends Controller
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
         // Hanya admin yang bisa edit jika status masih PR
-        if (Auth::user()->role !== 'admin' || $purchaseRequest->status !== 'PR') {
-            abort(403);
-        }
+        // if (Auth::user()->role !== 'admin' || $purchaseRequest->status !== 'PR') {
+        //     abort(403);
+        // }
 
         $validated = $request->validate([
             'nama_part' => 'required|string|max:255',

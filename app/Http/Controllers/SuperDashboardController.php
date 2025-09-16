@@ -16,7 +16,7 @@ class SuperDashboardController extends BaseController
     {
         $totalRequests = PurchaseRequest::count();
         $approvedRequests = PurchaseRequest::where('status', 'PO')->count();
-        $rejectedRequests = RequestLog::where('action', 'rejected')->distinct('purchaserequest_id')->count('purchaserequest_id');
+        $rejectedRequests = RequestLog::where('action', 'rejected')->distinct('purchase_request_id')->count('purchase_request_id');
         $recentLogs = RequestLog::with(['purchaseRequest', 'approvedBy'])->latest()->take(5)->get();
 
         return view('super.dashboard', compact('totalRequests', 'approvedRequests', 'rejectedRequests', 'recentLogs'));

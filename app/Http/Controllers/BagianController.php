@@ -54,7 +54,7 @@ class BagianController extends Controller
     public function edit(Bagian $bagian)
     {
         if (!$bagian || !$bagian->exists) {
-            Log::error('Edit: Bagian tidak ditemukan untuk ID: ' . request()->route('id') ?? 'null');
+            Log::error('Edit: Bagian tidak ditemukan untuk ID: ' . request()->route('bagian') ?? 'null');
             abort(404, 'Bagian tidak ditemukan.');
         }
         Log::info('Edit Bagian: ', $bagian->toArray());
@@ -63,8 +63,9 @@ class BagianController extends Controller
 
     public function update(Request $request, Bagian $bagian)
     {
+        Log::debug('Update: Received Bagian instance', ['bagian' => $bagian->toArray() ?? 'null', 'route_id' => request()->route('bagian')]);
         if (!$bagian || !$bagian->exists) {
-            Log::error('Update: Bagian tidak ditemukan untuk ID: ' . request()->route('id') ?? 'null');
+            Log::error('Update: Bagian not found for ID: ' . request()->route('bagian'));
             abort(404, 'Bagian tidak ditemukan.');
         }
         Log::info('Update Request: ', $request->all());

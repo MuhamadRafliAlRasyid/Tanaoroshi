@@ -40,6 +40,8 @@ Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFro
 Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
 Route::get('/google/callback', [SparepartController::class, 'handleGoogleCallback'])->name('handleGoogleCallback');
 Route::get('/qr', [SparepartController::class, 'regenerateAllQrCodes'])->name('regenerateAllQrCodes');
+Route::get('/spareparts/trashed', [SparepartController::class, 'trashed'])->name('spareparts.trashed');
+Route::get('/spareparts/{id}/restore', [SparepartController::class, 'restore'])->name('spareparts.restore');
 Route::get('/purchase-requests/unduh', [PurchaseRequestController::class, 'unduh'])->name('unduh');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::get('/pengambilan/export/{id?}', function ($id = null) {
@@ -53,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/karyawan/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
 
-    // Sparepart Routes
+    // Sparepart Ro utes
     Route::prefix('spareparts')->name('spareparts.')->group(function () {
         Route::get('/', [SparepartController::class, 'index'])->name('index');
         Route::get('/create', [SparepartController::class, 'create'])->name('create');
@@ -64,9 +66,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/edit', [SparepartController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SparepartController::class, 'update'])->name('update');
         Route::get('/{id}/regenerate-qr', [SparepartController::class, 'regenerateQrCode'])->name('regenerateQrCode');
-        Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('check.stock');
+        Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('checkstock');
         Route::delete('/{id}', [SparepartController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [SparepartController::class, 'restore'])->name('restore');
+        Route::get('/trashed', [SparepartController::class, 'trashed'])->name('trashed');
         Route::delete('/{id}/force-delete', [SparepartController::class, 'forceDelete'])->name('forceDelete');
     });
 
@@ -120,7 +123,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [BagianController::class, 'create'])->name('create');
         Route::post('/', [BagianController::class, 'store'])->name('store');
         Route::get('/{bagian}/edit', [BagianController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [BagianController::class, 'update'])->name('update');
+        Route::put('/{bagian}', [BagianController::class, 'update'])->name('update');
         Route::delete('/{bagian}', [BagianController::class, 'destroy'])->name('destroy');
     });
 });

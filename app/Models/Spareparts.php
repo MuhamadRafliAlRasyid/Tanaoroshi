@@ -35,6 +35,8 @@ class Spareparts extends Model
         'last_notified_at'
     ];
 
+    protected $dates = ['deleted_at', 'purchase_date', 'delivery_date', 'last_notified_at'];
+
     protected $casts = [
         'cek' => 'boolean',
         'patokan_harga' => 'float',

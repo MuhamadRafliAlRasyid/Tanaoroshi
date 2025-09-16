@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\Color\Color;
 use App\Exports\SparepartExport;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Endroid\QrCode\Writer\PngWriter;
 use Maatwebsite\Excel\Facades\Excel;
@@ -87,7 +88,7 @@ class SparepartController extends Controller
                 }
             } else {
                 // Jika stok sudah normal, hapus notif lama
-                \DB::table('notifications')
+                DB::table('notifications')
                     ->where('type', \App\Notifications\SparepartCriticalNotification::class)
                     ->whereJsonContains('data->sparepart_id', $sparepart->id)
                     ->delete();
@@ -193,16 +194,6 @@ class SparepartController extends Controller
     {
         $sparepart = Spareparts::findOrFail($id);
         return view('spareparts.edit', compact('sparepart'));
-    }
-
-
-
-    public function destroy($id)
-    {
-        $sparepart = Spareparts::findOrFail($id);
-        $sparepart->delete();
-
-        return redirect()->route('spareparts.index')->with('success', 'Sparepart deleted successfully.');
     }
 
     public function unduh(): BinaryFileResponse
@@ -351,5 +342,37 @@ class SparepartController extends Controller
         }
 
         return redirect()->route('spareparts.index')->with('info', 'No invalid dates found to fix.');
+    }
+    public function destroy($id)
+    {
+        $sparepart = Spareparts::findOrFail($id);
+        $sparepart->delete(); // Soft delete
+
+        return redirect()->route('spareparts.index')->with('success', 'Sparepart soft-deleted successfully.');
+    }
+
+    public function restore($id)
+    {
+        $sparepart = Spareparts::withTrashed()->findOrFail($id);
+        $sparepart->restore();
+
+        return redirect()->route('spareparts.trashed')->with('success', 'Sparepart restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $sparepart = Spareparts::withTrashed()->findOrFail($id);
+        if ($sparepart->qr_code && Storage::exists('public/' . $sparepart->qr_code)) {
+            Storage::delete('public/' . $sparepart->qr_code);
+        }
+        $sparepart->forceDelete();
+
+        return redirect()->route('spareparts.trashed')->with('success', 'Sparepart permanently deleted.');
+    }
+
+    public function trashed()
+    {
+        $trashedSpareparts = Spareparts::onlyTrashed()->paginate(10);
+        return view('spareparts.trashed', compact('trashedSpareparts'));
     }
 }
