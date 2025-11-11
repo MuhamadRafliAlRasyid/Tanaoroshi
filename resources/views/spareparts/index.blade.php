@@ -71,17 +71,17 @@
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->jumlah_baru }}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="{{ route('spareparts.show', $sparepart->id) }}"
+                                    <a href="{{ route('spareparts.show', $sparepart->hashid) }}"
                                         class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Lihat Sparepart">
                                         <i class="fas fa-eye mr-1"></i> Lihat
                                     </a>
-                                    <a href="{{ route('spareparts.edit', $sparepart->id) }}"
+                                    <a href="{{ route('spareparts.edit', $sparepart->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit Sparepart">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('spareparts.destroy', $sparepart->id) }}" method="POST"
+                                    <form action="{{ route('spareparts.destroy', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus?')">
                                         @csrf
                                         @method('DELETE')

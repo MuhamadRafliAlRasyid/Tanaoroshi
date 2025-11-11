@@ -61,13 +61,13 @@
                                 <td class="px-4 py-2">{{ $item->keperluan }}</td>
                                 <td class="px-4 py-2">{{ $item->waktu_pengambilan }}</td>
                                 <td class="px-4 py-2 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('pengambilan.edit', $item->id) }}"
+                                    <a href="{{ route('pengambilan.edit', $item->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit Pengambilan">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
                                     @if (Auth::user()->role === 'admin')
-                                        <form action="{{ route('pengambilan.destroy', $item->id) }}" method="POST"
+                                        <form action="{{ route('pengambilan.destroy', $item->hashid) }}" method="POST"
                                             onsubmit="return confirm('Yakin hapus data ini?');" class="inline">
                                             @csrf
                                             @method('DELETE')
@@ -78,7 +78,7 @@
                                             </button>
                                         </form>
                                     @endif
-                                    <a href="{{ route('pengambilan.exportpdf', $item->id) }}"
+                                    <a href="{{ route('pengambilan.exportpdf', $item->hashid) }}"
                                         class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 flex items-center text-sm font-medium transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Eksport Data">
                                         <i class="fas fa-download mr-1"></i> Eksport

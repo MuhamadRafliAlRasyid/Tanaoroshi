@@ -76,15 +76,15 @@
                     class="logo">
             </td>
 
-            <!-- Title lebih besar -->
+            <!-- Title -->
             <td class="header-cell" style="width:60%;">BARANG ASLI KANBAN</td>
 
-            <!-- Info + QR lebih kecil -->
+            <!-- Info + QR -->
             <td style="width:140px; border:none; text-align:center;">
-                Nomor urut: <b>{{ $sparepart->id }}</b><br>
-                Rak No: <b>{{ $sparepart->id }}</b><br>
+                Nomor urut: <b>{{ $sparepart->ruk_no }}</b><br>
+                Rak No: <b>{{ $sparepart->ruk_no }}</b><br>
                 @if ($sparepart->qr_code && file_exists(storage_path('app/public/' . $sparepart->qr_code)))
-                    <img src="{{ public_path('storage/' . $sparepart->qr_code) }}" class="qr-img">
+                    <img src="{{ storage_path('app/public/' . $sparepart->qr_code) }}" class="qr-img">
                 @endif
             </td>
         </tr>
@@ -116,15 +116,15 @@
                     class="logo">
             </td>
 
-            <!-- Title lebih besar -->
+            <!-- Title -->
             <td class="header-cell header-kanban" style="width:60%;">PESANAN KANBAN</td>
 
-            <!-- Info + QR lebih kecil -->
+            <!-- Info + QR -->
             <td style="width:140px; border:none; text-align:center;">
-                Nomor urut: <b>{{ $sparepart->id }}</b><br>
-                Rak No: <b>{{ $sparepart->id }}</b><br>
+                Nomor urut: <b>{{ $sparepart->ruk_no }}</b><br>
+                Rak No: <b>{{ $sparepart->ruk_no }}</b><br>
                 @if ($sparepart->qr_code && file_exists(storage_path('app/public/' . $sparepart->qr_code)))
-                    <img src="{{ public_path('storage/' . $sparepart->qr_code) }}" class="qr-img">
+                    <img src="{{ storage_path('app/public/' . $sparepart->qr_code) }}" class="qr-img">
                 @endif
             </td>
         </tr>

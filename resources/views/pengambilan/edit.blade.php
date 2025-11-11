@@ -12,7 +12,7 @@
                     Pengambilan Sparepart tidak ditemukan.
                 </div>
             @else
-                <form action="{{ route('pengambilan.update', $pengambilanSparepart->id) }}" method="POST"
+                <form action="{{ route('pengambilan.update', $pengambilanSparepart->hashid) }}" method="POST"
                     class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                     @csrf
                     @method('PUT')
@@ -25,7 +25,7 @@
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 @forelse ($users as $user)
                                     <option value="{{ $user->id }}"
-                                        {{ old('user_id', $pengambilanSparepart->user_id) == $user->id ? 'selected' : '' }}>
+                                        {{ old('user_id', $pengambilanSparepart->user_id) == $user->hashid ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
                                 @empty
@@ -44,7 +44,7 @@
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 @forelse ($bagians as $bagian)
                                     <option value="{{ $bagian->id }}"
-                                        {{ old('bagian_id', $pengambilanSparepart->bagian_id) == $bagian->id ? 'selected' : '' }}>
+                                        {{ old('bagian_id', $pengambilanSparepart->bagian_id) == $bagian->hashid ? 'selected' : '' }}>
                                         {{ $bagian->nama }}
                                     </option>
                                 @empty
@@ -77,7 +77,7 @@
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             @forelse ($spareparts as $sparepart)
                                 <option value="{{ $sparepart->id }}"
-                                    {{ old('spareparts_id', $pengambilanSparepart->spareparts_id) == $sparepart->id ? 'selected' : '' }}>
+                                    {{ old('spareparts_id', $pengambilanSparepart->spareparts_id) == $sparepart->hashid ? 'selected' : '' }}>
                                     {{ $sparepart->nama_part }} ({{ $sparepart->kode_part }})
                                 </option>
                             @empty

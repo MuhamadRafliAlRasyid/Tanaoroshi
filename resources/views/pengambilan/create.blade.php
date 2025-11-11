@@ -10,117 +10,105 @@
                 class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                 @csrf
 
+                {{-- User & Bagian --}}
                 @if (Auth::user()->role === 'admin')
-                    <!-- User (Hanya untuk admin) -->
                     <div>
                         <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                        <select id="user_id" name="user_id" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="user_id" name="user_id" required class="w-full border rounded-md px-3 py-2">
                             @foreach ($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                <option value="{{ $user->hashid }}">{{ $user->name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <!-- Bagian (Hanya untuk admin) -->
                     <div>
                         <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                        <select id="bagian_id" name="bagian_id" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="bagian_id" name="bagian_id" required class="w-full border rounded-md px-3 py-2">
                             @foreach ($bagians as $bagian)
-                                <option value="{{ $bagian->id }}">{{ $bagian->nama }}</option>
+                                <option value="{{ $bagian->hashid }}">{{ $bagian->nama }}</option>
                             @endforeach
                         </select>
                     </div>
                 @else
-                    <!-- Tampilkan info untuk karyawan (baca saja, tidak editable) -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
                         <input type="text" value="{{ Auth::user()->name }}" readonly
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
                         <input type="text" value="{{ Auth::user()->bagian->nama ?? 'Tidak ada bagian' }}" readonly
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
                     </div>
                 @endif
 
-                <!-- Sparepart (Disabled berdasarkan QR ID) -->
-                <!-- Sparepart (Disabled berdasarkan QR ID) -->
+                {{-- Sparepart --}}
+                {{-- Sparepart --}}
                 <div>
-                    <label for="spareparts_id_display"
-                        class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
-                    <!-- Input hidden untuk spareparts_id agar dikirim ke server -->
-                    <input type="hidden" name="spareparts_id"
-                        value="{{ $qrSparepartId ?? ($spareparts->first()->id ?? '') }}">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
 
-                    <!-- Select untuk display saja, disabled -->
-                    <select id="spareparts_id_display" name="spareparts_id_display" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled>
-                        @foreach ($spareparts as $sparepart)
-                            <option value="{{ $sparepart->id }}"
-                                {{ ($qrSparepartId ?? $spareparts->first()->id) == $sparepart->id ? 'selected' : '' }}>
-                                {{ $sparepart->nama_part }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <!-- Tampilkan stok bekas dan baru -->
-                    <p class="text-sm text-gray-600 mt-1">
-                        Stok Baru: {{ $spareparts->first()->jumlah_baru ?? 0 }} | Stok Bekas:
-                        {{ $spareparts->first()->jumlah_bekas ?? 0 }}
-                    </p>
+                    @if ($qrSparepartHashid)
+                        <input type="hidden" name="spareparts_id" value="{{ $qrSparepartHashid }}">
+                        <input type="text" value="{{ $spareparts->first()->nama_part ?? 'Tidak ditemukan' }}" readonly
+                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Stok Baru: {{ $spareparts->first()->jumlah_baru ?? 0 }} |
+                            Stok Bekas: {{ $spareparts->first()->jumlah_bekas ?? 0 }}
+                        </p>
+                    @else
+                        <select name="spareparts_id" required class="w-full border rounded-md px-3 py-2">
+                            @foreach ($spareparts as $sparepart)
+                                <option value="{{ $sparepart->hashid }}">{{ $sparepart->nama_part }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
-                <!-- Part Baru atau Bekas -->
+                {{-- Jenis Part --}}
                 <div>
                     <label for="part_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Part</label>
-                    <select id="part_type" name="part_type" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="part_type" name="part_type" required class="w-full border rounded-md px-3 py-2">
                         <option value="baru">Part Baru</option>
                         <option value="bekas">Part Bekas</option>
                     </select>
                 </div>
 
-                <!-- Jumlah -->
+                {{-- Jumlah --}}
                 <div>
                     <label for="jumlah" class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
                     <input id="jumlah" name="jumlah" type="number" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <p id="jumlah-warning" class="text-sm text-red-600 mt-1 hidden">Jumlah melebihi stok yang tersedia!</p>
+                        class="w-full border rounded-md px-3 py-2" />
+                    <p id="jumlah-warning" class="text-sm text-red-600 mt-1 hidden">Jumlah melebihi stok!</p>
                 </div>
 
-                <!-- Satuan -->
+                {{-- Satuan --}}
                 <div>
                     <label for="satuan" class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
                     <input id="satuan" name="satuan" type="text" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        class="w-full border rounded-md px-3 py-2" />
                 </div>
 
-                <!-- Keperluan -->
+                {{-- Keperluan --}}
                 <div class="col-span-full">
                     <label for="keperluan" class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
                     <input id="keperluan" name="keperluan" type="text" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        class="w-full border rounded-md px-3 py-2" />
                 </div>
 
-                <!-- Waktu Pengambilan -->
+                {{-- Waktu Pengambilan --}}
                 <div class="col-span-full">
                     <label for="waktu_pengambilan" class="block text-sm font-medium text-gray-700 mb-1">Waktu
                         Pengambilan</label>
                     <input id="waktu_pengambilan" name="waktu_pengambilan" type="datetime-local" required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        class="w-full border rounded-md px-3 py-2" />
                 </div>
 
+                {{-- Tombol --}}
                 <div class="col-span-full flex items-center gap-4 mt-6">
                     <button type="submit" id="submit-btn"
-                        class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                        <i class="fas fa-save mr-2"></i> Simpan
+                        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                        Simpan
                     </button>
                     <a href="{{ route('pengambilan.index') }}"
-                        class="text-gray-600 font-semibold hover:text-blue-600 transition">
-                        <i class="fas fa-times mr-2"></i> Batal
-                    </a>
+                        class="text-gray-600 font-semibold hover:text-blue-600">Batal</a>
                 </div>
             </form>
         </section>
@@ -138,9 +126,7 @@
 
                 function checkStock() {
                     const jumlah = parseInt(jumlahInput.value) || 0;
-                    const partType = partTypeSelect.value;
-                    const stock = (partType === 'baru') ? stockBaru : stockBekas;
-
+                    const stock = (partTypeSelect.value === 'baru') ? stockBaru : stockBekas;
                     if (jumlah > stock) {
                         warningMsg.classList.remove('hidden');
                         submitBtn.disabled = true;
@@ -152,7 +138,7 @@
 
                 partTypeSelect.addEventListener('change', checkStock);
                 jumlahInput.addEventListener('input', checkStock);
-                checkStock(); // Cek saat halaman dimuat
+                checkStock();
             });
         </script>
     @endpush

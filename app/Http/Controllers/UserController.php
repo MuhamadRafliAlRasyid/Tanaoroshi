@@ -56,21 +56,14 @@ class UserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:6',
-                'bagian_id' => 'nullable|exists:bagian,id', // Opsional
-                'role' => 'required|in:super,admin,karyawan', // Diperlukan untuk create
-                // 'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'bagian_id' => 'nullable|exists:bagian,id',
+                'role' => 'required|in:super,admin,karyawan',
             ]);
 
-            // Enkripsi password
             $validated['password'] = Hash::make($validated['password']);
-
-            // Simpan user terlebih dahulu
             $user = User::create($validated);
-
-            // Upload foto profil jika ada
             $this->handleFileUpload($request, $user);
 
-            // Redirect berdasarkan role user yang login
             $redirectRoute = optional(Auth::user())->role === 'admin'
                 ? 'admin.index'
                 : 'permintaan.index';
@@ -79,87 +72,60 @@ class UserController extends Controller
 
             return redirect()->route($redirectRoute)->with('success', 'User created successfully.');
         } catch (\Exception $e) {
-            Log::error('Error in store method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'request' => $request->all()]);
-            return redirect()->back()->with('error', 'Gagal membuat user. Silakan coba lagi.');
-        }
-    }
-    /**
-     * Tampilkan form edit data user.
-     */
-    public function edit(User $user)
-    {
-        $bagians = Bagian::all();
-        return view('admin.edit', compact('user', 'bagians'));
-    }
-
-    /**
-     * Update data user ke database.
-     */
-    public function update(Request $request, User $user)
-    {
-        try {
-            Log::info('Update request received', ['request' => $request->all(), 'user_id' => $user->id]);
-
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|string|min:6',
-                'bagian_id' => 'nullable|exists:bagian,id',
-                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-                'role' => 'required|in:super,admin,karyawan',
-            ]);
-
-            // Update password jika diisi
-            if ($request->filled('password')) {
-                $validated['password'] = Hash::make($request->password);
-            } else {
-                unset($validated['password']);
-            }
-
-            // Upload foto baru jika ada → hasilnya masuk ke validated
-            $validated = $this->handleFileUpload($request, $user, $validated);
-
-            // Update user
-            $user->update($validated);
-
-            $redirectRoute = optional(Auth::user())->role === 'admin'
-                ? 'admin.index'
-                : 'permintaan.index';
-
-            Log::info('User updated successfully', ['user_id' => $user->id, 'email' => $user->email]);
-
-            return redirect()->route($redirectRoute)->with('success', 'User updated successfully.');
-        } catch (\Exception $e) {
-            Log::error('Error in update method: ' . $e->getMessage(), [
+            Log::error('Error in store method: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all()
             ]);
-            return redirect()->back()->with('error', 'Gagal memperbarui user. Silakan coba lagi.');
+            return redirect()->back()->with('error', 'Gagal membuat user. Silakan coba lagi.');
         }
     }
 
-
     /**
-     * Hapus user dan foto profil terkait.
+     * Tampilkan form edit data user.
      */
-    public function destroy(User $user)
-    {
-        $directory = public_path('images/profile');
-        if ($user->profile_photo_path && File::exists($directory . '/' . $user->profile_photo_path)) {
-            File::delete($directory . '/' . $user->profile_photo_path);
-        }
+    public function edit(User $user) // ← Laravel otomatis decode hashid → $user
+{
+    $bagians = Bagian::all();
+    return view('admin.edit', compact('user', 'bagians'));
+}
 
-        $user->delete();
-        return redirect()->route('admin.index')->with('success', 'User deleted successfully.');
+public function update(Request $request, User $user)
+{
+    // $user sudah dari hashid
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'password' => 'nullable|string|min:6',
+        'bagian_id' => 'nullable|exists:bagian,id',
+        'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'role' => 'required|in:super,admin,karyawan',
+    ]);
+
+    if ($request->filled('password')) {
+        $validated['password'] = Hash::make($request->password);
+    } else {
+        unset($validated['password']);
     }
 
+    $validated = $this->handleFileUpload($request, $user, $validated);
+    $user->update($validated);
+
+    return redirect()->route('admin.index')->with('success', 'User updated.');
+}
+
+public function destroy(User $user)
+{
+    // Hapus foto
+    if ($user->profile_photo_path) {
+        $path = public_path('images/profile/' . $user->profile_photo_path);
+        if (File::exists($path)) File::delete($path);
+    }
+
+    $user->delete();
+    return redirect()->route('admin.index')->with('success', 'User deleted.');
+}
     /**
-     * Menghandle upload foto profil user.
-     *
-     * @param Request $request
-     * @param User $user
-     * @param array $validated (opsional untuk update)
-     * @return void
+     * Handle upload foto profil user.
      */
     private function handleFileUpload(Request $request, User $user, array $validated = [])
     {

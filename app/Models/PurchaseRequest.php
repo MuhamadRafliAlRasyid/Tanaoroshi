@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Traits\HasHashId;
+use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PurchaseRequest extends Model
 {
     use HasFactory;
+    use HasHashId;
 
     protected $table = 'purchase_requests';
 
@@ -23,7 +26,8 @@ class PurchaseRequest extends Model
         'untuk_apa',
         'pic',
         'quotation_lead_time',
-        'status'
+        'status',
+        'sparepart_id'
     ];
 
     public function user()

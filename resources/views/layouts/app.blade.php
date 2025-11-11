@@ -43,119 +43,160 @@
             background: #F3F4F6;
         }
 
-        @media (max-width: 768px) {
-            .sidebar-scroll {
-                height: auto;
-                max-height: calc(100vh - 64px);
-            }
-
-            aside {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease-in-out;
-            }
-
-            aside.open {
-                transform: translateX(0);
+        /* Mobile Sidebar */
+        @media (max-width: 1023px) {
+            .sidebar {
                 position: fixed;
                 top: 64px;
-                bottom: 0;
-                z-index: 30;
-                width: 250px;
+                left: 0;
+                width: 256px;
+                height: calc(100vh - 64px);
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             }
 
-            .ml-64 {
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
                 margin-left: 0 !important;
             }
 
             .hamburger {
                 display: block;
             }
+
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s;
+            }
+
+            .overlay.show {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Sembunyikan teks di mobile */
+            .hide-on-mobile {
+                display: none;
+            }
+
+            .logo-mobile {
+                width: 32px;
+                height: 32px;
+            }
         }
 
-        .hamburger {
-            display: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+        /* Desktop */
+        @media (min-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                width: 256px;
+                height: calc(100vh - 64px);
+                transform: translateX(0) !important;
+            }
+
+            .main-content {
+                margin-left: 256px;
+            }
+
+            .hamburger,
+            .overlay {
+                display: none !important;
+            }
+
+            .hide-on-mobile {
+                display: block;
+            }
+
+            .logo-mobile {
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-700" x-data="{ sidebarOpen: false, notifOpen: false }">
+<body class="bg-gray-50 text-gray-700" x-data="{ sidebarOpen: false, notifOpen: false, userOpen: false }">
     @auth
+        <!-- Overlay -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="overlay" :class="{ 'show': sidebarOpen }"></div>
+
         <!-- Header Navbar -->
-        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between border-b fixed w-full z-20 h-16">
-            <div class="flex items-center space-x-4">
-                <button @click="sidebarOpen = !sidebarOpen" class="hamburger lg:hidden">
-                    <i class="fas fa-bars"></i>
+        <header class="bg-white shadow-sm border-b fixed w-full z-50 h-16 flex items-center px-4 lg:px-6">
+            <div class="flex items-center flex-1">
+                <!-- Hamburger + Logo -->
+                <button @click="sidebarOpen = !sidebarOpen" class="hamburger text-gray-700 p-2 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
-                <img src="{{ asset('images/logo.jpg') }}?v={{ time() }}" alt="Logo"
-                    class="w-28 h-12 object-contain" onerror="this.src='{{ asset('images/logo.jpg') }}'">
-                <h1 class="text-xl font-semibold text-gray-900">Tanaoroshi</h1>
+                <div class="flex items-center space-x-3 ml-2 lg:ml-0">
+                    <img src="{{ asset('images/logo.jpg') }}?v={{ time() }}" alt="Logo"
+                        class="logo-mobile object-contain" onerror="this.src='{{ asset('images/logo.jpg') }}'">
+                    <h1 class="text-lg lg:text-xl font-semibold text-gray-900 hide-on-mobile">Tanaoroshi</h1>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <!-- Di dalam header, ganti bagian notifikasi -->
-                <div class="relative">
-                    <button @click="notifOpen = !notifOpen" id="notifBell" class="relative focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        @if (auth()->check() && auth()->user()->unreadNotifications->count() > 0)
+
+            <!-- Right Side: Notif + User -->
+            <div class="flex items-center space-x-3">
+                <!-- Notifikasi -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 relative">
+                        <i class="fas fa-bell text-lg text-gray-700"></i>
+                        @if (auth()->user()->unreadNotifications->count() > 0)
                             <span
-                                class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1">{{ auth()->user()->unreadNotifications->count() }}</span>
+                                class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {{ auth()->user()->unreadNotifications->count() }}
+                            </span>
                         @endif
                     </button>
-                    <div x-show="notifOpen" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-95" @click.away="notifOpen = false" id="notifDropdown"
-                        class="hidden absolute right-0 mt-2 w-72 bg-white border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                        <div class="p-2 font-bold border-b">Notifikasi</div>
+                    <div x-show="open" x-transition @click.away="open = false"
+                        class="absolute right-0 mt-2 w-72 bg-white border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                        <div class="p-3 font-bold border-b text-sm">Notifikasi</div>
                         <div class="max-h-64 overflow-y-auto">
-                            @if (auth()->check())
-                                @forelse(auth()->user()->unreadNotifications as $notif)
-                                    <a href="{{ $notif->data['action_url'] }}"
-                                        class="p-2 hover:bg-gray-100 border-b text-red-600">
-                                        ⚠️ Peringatan: Stok **{{ $notif->data['nama_part'] }}** kritis!<br>
-                                        Sisa stok: {{ $notif->data['jumlah_baru'] }} (Titik Pesanan:
-                                        {{ $notif->data['titik_pesanan'] }})<br>
-                                        <span class="text-blue-600">Klik untuk ajukan pembelian</span>
-                                    </a>
-                                @empty
-                                    <div class="p-2 text-gray-500">Tidak ada notifikasi</div>
-                                @endforelse
-                            @endif
+                            @forelse(auth()->user()->unreadNotifications as $notif)
+                                <a href="{{ $notif->data['action_url'] }}"
+                                    class="block p-3 hover:bg-gray-50 border-b text-sm">
+                                    <span class="text-red-600 font-medium">Peringatan:</span>
+                                    Stok <strong>{{ $notif->data['nama_part'] }}</strong> kritis!<br>
+                                    Sisa: {{ $notif->data['jumlah_baru'] }} | Titik Pesanan:
+                                    {{ $notif->data['titik_pesanan'] }}
+                                    <span class="block text-blue-600 text-xs mt-1">Klik untuk ajukan</span>
+                                </a>
+                            @empty
+                                <div class="p-3 text-gray-500 text-center text-sm">Tidak ada notifikasi</div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
+
+                <!-- User Menu -->
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
-                        class="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-full transition" aria-label="User Menu"
-                        aria-haspopup="true" aria-expanded="open">
+                        class="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition">
                         <img src="{{ asset('images/profile/' . Auth::user()->profile_photo_path) }}"
-                            class="w-8 h-8 rounded-full border" alt="User Avatar"
+                            class="w-8 h-8 rounded-full border" alt="User"
                             onerror="this.src='{{ asset('images/avatar.png') }}'">
-                        <div class="text-sm text-gray-700">
-                            <p class="font-medium">{{ Auth::user()->name }}</p>
-                            <p class="text-xs capitalize">{{ Auth::user()->role }}</p>
-                        </div>
+                        <span class="hide-on-mobile text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
                     </button>
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-95" @click.away="open = false"
-                        class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-2 z-10"
-                        role="menu">
-                        <a href="{{ route('admin.edit', Auth::user()->id) }}"
-                            class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                            role="menuitem">
+                    <div x-show="open" x-transition @click.away="open = false"
+                        class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg py-2 z-50">
+                        <a href="{{ route('admin.edit', Auth::user()->hashid) }}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                             <i class="fas fa-user-cog"></i> Account & Security
                         </a>
                         <a href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                            class="px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                            role="menuitem">
+                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
@@ -164,10 +205,9 @@
             </div>
         </header>
 
-        <div class="flex pt-16 h-screen" :class="{ 'ml-64': !sidebarOpen }">
+        <div class="flex pt-16 min-h-screen">
             <!-- Sidebar -->
-            <aside class="w-64 bg-white border-r shadow-sm fixed h-full z-10 transition-transform duration-300"
-                x-bind:class="{ 'transform -translate-x-full': !sidebarOpen }" x-data="{ open: true }">
+            <aside class="sidebar bg-white border-r" :class="{ 'open': sidebarOpen }">
                 <div class="sidebar-scroll p-6">
                     <div class="mb-8">
                         <h2 class="text-xl font-semibold text-gray-800 mb-6">Dashboard</h2>
@@ -188,24 +228,24 @@
                                             class="fas fa-box"></i> Sparepart</a></li>
                                 <li><a href="{{ route('pengambilan.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-tasks"></i> Daftar Pengambilan Sparepart</a></li>
+                                            class="fas fa-tasks"></i> Daftar Pengambilan</a></li>
                                 <li><a href="{{ route('admin.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
                                             class="fas fa-users"></i> Daftar User</a></li>
                                 <li><a href="{{ route('bagian.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-users"></i> Daftar Nama Dept</a></li>
+                                            class="fas fa-building"></i> Daftar Dept</a></li>
                                 <li><a href="{{ route('purchase_requests.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
                                             class="fas fa-shopping-cart"></i> Pengajuan Sparepart</a></li>
                             @elseif (Auth::user()->role === 'super')
                                 <li><a href="{{ route('purchase_requests.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-check-circle"></i> Approve Pengajuan Sparepart</a></li>
+                                            class="fas fa-check-circle"></i> Approve Pengajuan</a></li>
                             @elseif (Auth::user()->role === 'karyawan')
                                 <li><a href="{{ route('pengambilan.index') }}"
                                         class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-tasks"></i> Daftar Pengambilan Sparepart</a></li>
+                                            class="fas fa-tasks"></i> Daftar Pengambilan</a></li>
                             @endif
                         </ul>
                     </div>
@@ -213,7 +253,7 @@
                         <h2 class="text-xl font-semibold text-gray-800 mb-4">Tools</h2>
                         <ul class="space-y-3">
                             <li>
-                                <a href="{{ route('admin.edit', Auth::user()->id) }}"
+                                <a href="{{ route('admin.edit', Auth::user()->hashid) }}"
                                     class="text-base flex items-center gap-2 hover:text-blue-600 transition">
                                     <i class="fas fa-user-cog"></i> Account & Security
                                 </a>
@@ -231,24 +271,21 @@
             </aside>
 
             <!-- Main Content -->
-            <main class="flex-1 p-8 overflow-y-auto" :class="{ 'ml-0': !sidebarOpen, 'ml-64': sidebarOpen }">
+            <main class="main-content flex-1 p-6 lg:p-8 overflow-y-auto bg-gray-50">
                 <div class="mb-8">
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">@yield('title')</h2>
                     @if (session('success'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                            role="alert">
-                            <span class="block sm:inline">{{ session('success') }}</span>
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                            {{ session('success') }}
                         </div>
                     @endif
                     @if (session('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                            role="alert">
-                            <span class="block sm:inline">{{ session('error') }}</span>
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                            {{ session('error') }}
                         </div>
                     @endif
                 </div>
 
-                <!-- Page Content -->
                 @yield('content')
             </main>
         </div>
@@ -257,23 +294,6 @@
     @endauth
 
     @livewireScripts
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const notifBell = document.getElementById('notifBell');
-            const notifDropdown = document.getElementById('notifDropdown');
-
-            notifBell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notifDropdown.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!notifBell.contains(e.target) && !notifDropdown.contains(e.target)) {
-                    notifDropdown.classList.add('hidden');
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>

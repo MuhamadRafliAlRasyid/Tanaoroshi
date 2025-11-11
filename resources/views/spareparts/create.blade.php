@@ -110,8 +110,8 @@
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                     <div class="form-group">
-                        <label for="qr_code" class="block text-sm font-medium text-gray-700">QR Code (Opsional)</label>
-                        <input type="text" id="qr_code" name="qr_code"
+                        <label for="qr_code" class="block text-sm font-medium text-gray-700"></label>
+                        <input type="hidden" id="qr_code" name="qr_code"
                             class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                 </div>
@@ -132,7 +132,7 @@
                 const formatRupiah = (input, initialValue) => {
                     let value = input.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
                     if (value === '') value = initialValue.replace(/[^0-9]/g,
-                    ''); // Kembali ke nilai awal jika kosong
+                        ''); // Kembali ke nilai awal jika kosong
                     let number = parseInt(value) || parseInt(initialValue.replace(/[^0-9]/g, '')) || 0;
                     input.value = new Intl.NumberFormat('id-ID', {
                         style: 'currency',

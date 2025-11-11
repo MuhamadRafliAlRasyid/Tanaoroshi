@@ -16,7 +16,7 @@ class SparepartCriticalNotification extends Notification
     public function __construct(Spareparts $sparepart)
     {
         $this->sparepart = $sparepart;
-        Log::info('Creating notification for sparepart ID: ' . $sparepart->id);
+        Log::info('Creating notification for sparepart ID: ' . $sparepart->hashid);
     }
 
     public function via($notifiable)
@@ -37,7 +37,7 @@ class SparepartCriticalNotification extends Notification
             'nama_part' => $this->sparepart->nama_part,
             'jumlah_baru' => $this->sparepart->jumlah_baru,
             'titik_pesanan' => $this->sparepart->titik_pesanan,
-            'action_url' => route('purchase_requests.create') . '?sparepart_id=' . $this->sparepart->id, // Tambahkan sparepart_id
+            'action_url' => route('purchase_requests.create') . '?sparepart_id=' . $this->sparepart->hashid, // Tambahkan sparepart_id
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
 use App\Models\Bagian;
+use App\Models\Spareparts;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,23 +14,12 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /**
-     * Menampilkan formulir registrasi.
-     *
-     * @return \Illuminate\View\View
-     */
     public function showRegister()
     {
         $bagians = Bagian::all();
         return view('auth.register', compact('bagians'));
     }
 
-    /**
-     * Menangani proses registrasi pengguna baru.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function register(Request $request)
     {
         $request->validate([
@@ -63,27 +53,15 @@ class AuthController extends Controller
         };
     }
 
-    /**
-     * Menampilkan formulir login.
-     *
-     * @return \Illuminate\View\View
-     */
     public function showLoginForm()
     {
-        $sparepartsId = request()->query('spareparts_id'); // Ambil dari query string (dari scan QR)
-        // Simpan spareparts_id ke sesi jika ada
-        if ($sparepartsId) {
-            session(['spareparts_id' => $sparepartsId]);
+        $sparepartsHashid = request()->query('spareparts_id');
+        if ($sparepartsHashid) {
+            session(['spareparts_hashid' => $sparepartsHashid]);
         }
-        return view('auth.login', compact('sparepartsId'));
+        return view('auth.login', compact('sparepartsHashid'));
     }
 
-    /**
-     * Menangani proses logout pengguna.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -92,12 +70,7 @@ class AuthController extends Controller
         return redirect('/login')->with('success', 'Anda telah logout.');
     }
 
-    /**
-     * Menangani proses login pengguna.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -105,23 +78,20 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Ambil spareparts_id dari sesi (karena query string tidak otomatis tersedia di POST)
-        $sparepartsId = session('spareparts_id') ?? $request->input('spareparts_id') ?? $request->query('spareparts_id');
+        $sparepartsHashid = session('spareparts_hashid') ?? $request->input('spareparts_id') ?? $request->query('spareparts_id');
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $role = Auth::user()->role;
 
-            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts ID: ' . ($sparepartsId ?? 'None'));
+            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts HashID: ' . ($sparepartsHashid ?? 'None'));
 
-            // Prioritaskan pengalihan ke pengambilan.create jika sparepartsId ada
-            if ($sparepartsId) {
-                // Hapus sesi setelah digunakan untuk mencegah penggunaan berulang
-                $request->session()->forget('spareparts_id');
-                return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsId])->with('success', 'Login berhasil!');
+            $request->session()->forget('spareparts_hashid');
+
+            if ($sparepartsHashid) {
+                return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsHashid])->with('success', 'Login berhasil!');
             }
 
-            // Pengalihan default berdasarkan role
             return match ($role) {
                 'super' => redirect('/super/dashboard')->with('success', 'Login berhasil!'),
                 'admin' => redirect('/admin/dashboard')->with('success', 'Login berhasil!'),

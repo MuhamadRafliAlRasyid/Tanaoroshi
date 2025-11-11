@@ -7,6 +7,7 @@ use App\Models\Spareparts;
 use Endroid\QrCode\QrCode;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Services\HashIdService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\Color\Color;
 use App\Exports\SparepartExport;
@@ -22,7 +23,22 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SparepartController extends Controller
 {
-
+    public function getRouteKeyName()
+    {
+        return 'hashid';
+    }
+    protected function resolveHashid($hashid)
+    {
+        $id = app(HashIdService::class)->decode($hashid);
+        if (!$id) abort(404);
+        return Spareparts::findOrFail($id);
+    }
+     protected function resolveHashids($hashid)
+{
+    $id = app(HashIdService::class)->decode($hashid);
+    if (!$id) abort(404);
+    return Spareparts::where('id', $id); // RETURN QUERY BUILDER!
+}
     protected function normalizeDate($date)
     {
         if (!$date || $date === '-' || $date === 'PART FROM PE') {
@@ -143,10 +159,10 @@ class SparepartController extends Controller
         return redirect()->route('spareparts.index')->with('success', 'Sparepart created successfully.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $hashid)
     {
-        Log::debug('Entering SparepartController@update for ID: ' . $id);
-        $sparepart = Spareparts::findOrFail($id);
+        Log::debug('Entering SparepartController@update for hashid: ' . $hashid);
+        $sparepart = $this->resolveHashid($hashid);
         $requestData = $request->all();
 
         Log::debug('Raw request data: ', $requestData);
@@ -174,25 +190,23 @@ class SparepartController extends Controller
         Log::debug('Validated data before update: ', $validated);
 
         $sparepart->update($validated);
-        Log::debug('Data sent to update: ', $validated);
-        Log::debug('Updated sparepart with ID: ' . $id);
+        Log::debug('Updated sparepart with hashid: ' . $hashid);
 
         $this->generateQrCode($sparepart, $sparepart->ruk_no);
-        Log::debug('Regenerated QR code for sparepart ID: ' . $id);
+        Log::debug('Regenerated QR code for sparepart hashid: ' . $hashid);
 
         Log::debug('Exiting SparepartController@update');
         return redirect()->route('spareparts.index')->with('success', 'Sparepart updated successfully.');
     }
-
-    public function show($id)
+    public function show($hashid)
     {
-        $sparepart = Spareparts::findOrFail($id);
+        $sparepart = $this->resolveHashid($hashid);
         return view('spareparts.show', compact('sparepart'));
     }
 
-    public function edit($id)
+    public function edit($hashid)
     {
-        $sparepart = Spareparts::findOrFail($id);
+        $sparepart = $this->resolveHashid($hashid);
         return view('spareparts.edit', compact('sparepart'));
     }
 
@@ -201,15 +215,12 @@ class SparepartController extends Controller
         $export = new SparepartExport();
         return Excel::download($export, 'spareparts.xlsx');
     }
-    public function downloadPdf($id)
-    {
-        $sparepart = Spareparts::findOrFail($id);
-
-        $pdf = Pdf::loadView('spareparts.kanban', compact('sparepart'))
-            ->setPaper('A4', 'portrait');
-
-        return $pdf->download("Sparepart-{$sparepart->id}.pdf");
-    }
+    public function downloadPdf($hashid)
+{
+    $sparepart = $this->resolveHashids($hashid)->firstOrFail();
+    $pdf = Pdf::loadView('spareparts.kanban', compact('sparepart'))->setPaper('A4');
+    return $pdf->download("Kanban-{$sparepart->ruk_no}.pdf");
+}
     public function checkStock()
     {
         $criticalSpareparts = Spareparts::whereColumn('jumlah_baru', '<=', 'titik_pesanan')->get();
@@ -229,103 +240,60 @@ class SparepartController extends Controller
     }
 
     protected function generateQrCode(Spareparts $sparepart, string $location): void
-    {
-        $storagePath = 'public/qrcodes';
-        if (!Storage::exists($storagePath)) {
-            Storage::makeDirectory($storagePath, 0755, true);
-        }
+{
+    $storagePath = 'public/qrcodes';
+    Storage::makeDirectory($storagePath, 0755, true);
 
-        $qrCodePath = 'qrcodes/sparepart_' . $sparepart->id . '_' . Str::slug($location) . '.png';
-        $fullPath = storage_path('app/public/' . $qrCodePath);
-        $oldQrCodePath = $sparepart->qr_code;
+    $qrCodePath = 'qrcodes/sparepart_' . $sparepart->hashid . '_' . Str::slug($location) . '.png';
+    $fullPath = storage_path('app/public/' . $qrCodePath);
 
-        try {
-            $qrCode = new QrCode(
-                data: route('login', ['spareparts_id' => $sparepart->id], false),
-                encoding: new Encoding('UTF-8'),
-                size: 300,
-                margin: 10,
-                foregroundColor: new Color(0, 0, 0),
-                backgroundColor: new Color(255, 255, 255)
-            );
+    try {
+        $qrCode = new QrCode(
+            data: route('login') . '?spareparts_id=' . $sparepart->hashid, // QR LANGSUNG KE FORM!
+            encoding: new Encoding('UTF-8'),
+            size: 300,
+            margin: 10,
+            foregroundColor: new Color(0, 0, 0),
+            backgroundColor: new Color(255, 255, 255)
+        );
 
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
-            $result->saveToFile($fullPath);
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+        $result->saveToFile($fullPath);
 
-            $sparepart->update(['qr_code' => $qrCodePath]);
+        $sparepart->update(['qr_code' => $qrCodePath]);
 
-            if ($oldQrCodePath && Storage::exists('public/' . $oldQrCodePath)) {
-                Storage::delete('public/' . $oldQrCodePath);
-            }
-        } catch (\Exception $e) {
-            Log::error('Error generating QR for ID ' . $sparepart->id . ': ' . $e->getMessage());
-            throw $e;
-        }
+    } catch (\Exception $e) {
+        Log::error('QR Generation failed: ' . $e->getMessage());
+        throw $e;
     }
-    public function regenerateQrCode($id)
+}
+    public function regenerateQrCode($hashid)
     {
-        Log::debug('Entering SparepartController@regenerateQrCode for ID: ' . $id);
-        $sparepart = Spareparts::findOrFail($id);
-
+        Log::debug('Entering SparepartController@regenerateQrCode for hashid: ' . $hashid);
+        $sparepart = $this->resolveHashid($hashid);
         $this->generateQrCode($sparepart, $sparepart->ruk_no);
-        Log::debug('Regenerated QR code for sparepart ID: ' . $id);
-
-        Log::debug('Exiting SparepartController@regenerateQrCode');
-        return redirect()->back()->with('success', 'QR code regenerated successfully for sparepart ID: ' . $id);
+        Log::debug('Regenerated QR code for sparepart hashid: ' . $hashid);
+        return redirect()->back()->with('success', 'QR code regenerated successfully.');
     }
 
-    public function regenerateAllQrCodes()
-    {
-        $storagePath = 'public/qrcodes';
-        if (!Storage::exists($storagePath)) {
-            Storage::makeDirectory($storagePath, 0755, true);
+    public function generateAllQrCodes()
+{
+    $spareparts = Spareparts::all();
+
+    foreach ($spareparts as $sparepart) {
+        // 1. HAPUS QR LAMA DARI STORAGE
+        if ($sparepart->qr_code && Storage::exists('public/' . $sparepart->qr_code)) {
+            Storage::delete('public/' . $sparepart->qr_code);
         }
 
-        Spareparts::chunk(100, function ($spareparts) {
-            foreach ($spareparts as $sparepart) {
-                try {
-                    $sparepart->location = $sparepart->ruk_no;
-                    $sparepart->save();
-
-                    $qrCodePath = 'qrcodes/sparepart_' . $sparepart->id . '_' . Str::slug($sparepart->ruk_no) . '.png';
-                    $fullPath = storage_path('app/public/' . $qrCodePath);
-                    $oldQrCodePath = $sparepart->qr_code;
-
-                    $baseUrl = config('app.url');
-                    $loginUrl = $baseUrl . '/login';
-                    $qrData = $loginUrl . '?spareparts_id=' . $sparepart->id;
-
-                    $qrCode = new QrCode(
-                        data: $qrData,
-                        encoding: new Encoding('UTF-8'),
-                        size: 300,
-                        margin: 10,
-                        foregroundColor: new Color(0, 0, 0),
-                        backgroundColor: new Color(255, 255, 255)
-                    );
-
-                    $writer = new PngWriter();
-                    $result = $writer->write($qrCode);
-                    $result->saveToFile($fullPath);
-
-                    $sparepart->update(['qr_code' => $qrCodePath]);
-
-                    if ($oldQrCodePath && Storage::exists('public/' . $oldQrCodePath)) {
-                        Storage::delete('public/' . $oldQrCodePath);
-                    }
-
-                    Log::info('QR code generated for sparepart ID: ' . $sparepart->id);
-                } catch (\Exception $e) {
-                    Log::error('Error generating QR for ID ' . $sparepart->id . ': ' . $e->getMessage());
-                    continue;
-                }
-            }
-        });
-
-        return redirect()->route('spareparts.index')->with('success', 'All QR codes have been generated successfully.');
+        // 2. REGENERATE QR BARU
+        $this->generateQrCode($sparepart, $sparepart->ruk_no);
     }
 
+    return redirect()->route('spareparts.index')
+        ->with('success', 'Semua QR Code berhasil diperbarui!');
+}
     public function fixInvalidDates()
     {
         $defaultDate = '1970-01-01';
@@ -343,30 +311,29 @@ class SparepartController extends Controller
 
         return redirect()->route('spareparts.index')->with('info', 'No invalid dates found to fix.');
     }
-    public function destroy($id)
+    public function destroy($hashid)
     {
-        $sparepart = Spareparts::findOrFail($id);
-        $sparepart->delete(); // Soft delete
-
+        $sparepart = $this->resolveHashid($hashid);
+        $sparepart->delete();
         return redirect()->route('spareparts.index')->with('success', 'Sparepart soft-deleted successfully.');
     }
 
-    public function restore($id)
+    public function restore($hashid)
     {
+        $id = app(HashIdService::class)->decode($hashid);
         $sparepart = Spareparts::withTrashed()->findOrFail($id);
         $sparepart->restore();
-
         return redirect()->route('spareparts.trashed')->with('success', 'Sparepart restored successfully.');
     }
 
-    public function forceDelete($id)
+    public function forceDelete($hashid)
     {
+        $id = app(HashIdService::class)->decode($hashid);
         $sparepart = Spareparts::withTrashed()->findOrFail($id);
         if ($sparepart->qr_code && Storage::exists('public/' . $sparepart->qr_code)) {
             Storage::delete('public/' . $sparepart->qr_code);
         }
         $sparepart->forceDelete();
-
         return redirect()->route('spareparts.trashed')->with('success', 'Sparepart permanently deleted.');
     }
 

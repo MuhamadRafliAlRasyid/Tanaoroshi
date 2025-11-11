@@ -162,6 +162,7 @@ return [
         // Third-party providers
         Livewire\LivewireServiceProvider::class, // Pastikan Livewire terdaftar
         Maatwebsite\Excel\ExcelServiceProvider::class, // Pastikan Excel terdaftar
+        App\Providers\HashIdServiceProvider::class, // Tambahkan HashIdServiceProvider
     ],
 
     /*

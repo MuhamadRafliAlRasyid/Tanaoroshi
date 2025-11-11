@@ -6,7 +6,7 @@
             <div class="bg-white shadow-xl rounded-lg p-6">
                 <h2 class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-2 border-indigo-200 pb-2 relative">
                     <i class="fas fa-info-circle mr-2"></i> Detail Sparepart
-                    <a href="{{ route('spareparts.edit', $sparepart->id) }}"
+                    <a href="{{ route('spareparts.edit', $sparepart->hashid) }}"
                         class="absolute right-0 top-0 text-blue-500 hover:text-blue-700 underline text-sm mt-1 mr-2">
                         <i class="fas fa-edit mr-1"></i> Edit
                     </a>
@@ -126,7 +126,7 @@
                         @else
                             <div class="text-center">
                                 <p class="text-red-500">QR Code belum di-generate.</p>
-                                <a href="{{ route('spareparts.regenerateQrCode', $sparepart->id) }}"
+                                <a href="{{ route('spareparts.regenerateQrCode', $sparepart->hashid) }}"
                                     class="mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
                                     <i class="fas fa-sync mr-1"></i> Generate Sekarang
                                 </a>
@@ -137,7 +137,7 @@
 
                 <!-- Action Buttons -->
                 <div class="mt-6 flex flex-col md:flex-row gap-4 justify-center">
-                    <a href="{{ route('spareparts.pdf', $sparepart->id) }}"
+                    <a href="{{ route('spareparts.pdf', $sparepart->hashid) }}"
                         class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 text-center transition-colors flex-1 md:flex-none flex items-center justify-center">
                         <i class="fas fa-download mr-2"></i> Download PDF
                     </a>

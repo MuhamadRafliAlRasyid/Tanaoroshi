@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Spareparts;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
+use App\Services\HashIdService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -13,14 +15,16 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PurchaseRequestController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected function resolveHashid($hashid)
+    {
+        $id = app(HashIdService::class)->decode($hashid);
+        if (!$id) abort(404);
+        return PurchaseRequest::findOrFail($id);
+    }
     public function index(Request $request)
     {
         $query = PurchaseRequest::with('user');
 
-        // Filter berdasarkan pencarian
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -39,35 +43,32 @@ class PurchaseRequestController extends Controller
         return view('purchase_requests.index', compact('purchaseRequests'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $request)
-    {
-        // Hanya admin yang bisa create
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-
-        $sparepart = null;
-        $nama_part = '';
-        $part_number = '';
-
-        // Ambil sparepart_id dari query string jika ada
-        if ($request->has('sparepart_id')) {
-            $sparepart = Spareparts::find($request->sparepart_id);
-            if ($sparepart) {
-                $nama_part = $sparepart->nama_part;
-                $part_number = $sparepart->model; // Asumsi model sebagai part_number, sesuaikan jika berbeda
-            }
-        }
-
-        return view('purchase_requests.create', compact('nama_part', 'part_number'));
+{
+    if (Auth::user()->role !== 'admin') {
+        abort(403);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    $sparepart = null;
+    $nama_part = '';
+    $part_number = '';
+
+    if ($request->has('sparepart_id')) {
+        $hashid = $request->input('sparepart_id');
+        $sparepartId = app(HashIdService::class)->decode($hashid);
+
+        if ($sparepartId) {
+            $sparepart = Spareparts::find($sparepartId);
+            if ($sparepart) {
+                $nama_part = $sparepart->nama_part;
+                $part_number = $sparepart->model;
+            }
+        }
+    }
+
+    return view('purchase_requests.create', compact('nama_part', 'part_number'));
+}
+
     public function store(Request $request)
     {
         if (Auth::user()->role !== 'admin') {
@@ -88,43 +89,49 @@ class PurchaseRequestController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
-        $validated['status'] = 'PR'; // Default status PR
+        $validated['status'] = 'PR';
+
+        // Simpan sparepart_id jika ada
+        if ($request->has('sparepart_id')) {
+            $sparepartId = app(HashIdService::class)->decode($request->sparepart_id);
+            $validated['sparepart_id'] = $sparepartId;
+        }
 
         $purchaseRequest = PurchaseRequest::create($validated);
+
+        // Update spareparts dengan purchase_request_id
+        if (isset($sparepartId)) {
+            $sparepart = Spareparts::find($sparepartId);
+            if ($sparepart) {
+                $sparepart->update(['purchase_request_id' => $purchaseRequest->id]);
+            }
+        }
 
         $purchaseRequest->logs()->create([
             'action' => 'created',
             'notes' => 'Request dibuat oleh admin.',
         ]);
 
-        return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil dibuat.');
+        return redirect()
+            ->route('purchase_requests.show', $purchaseRequest->hashid)
+            ->with('success', 'Purchase Request berhasil dibuat. Semoga harimu menyenangkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(PurchaseRequest $purchaseRequest)
+    public function show($hashid)
     {
+        $purchaseRequest = $this->resolveHashid($hashid);
         return view('purchase_requests.show', compact('purchaseRequest'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PurchaseRequest $purchaseRequest)
+    public function edit($hashid)
     {
+        $purchaseRequest = $this->resolveHashid($hashid);
         return view('purchase_requests.edit', compact('purchaseRequest'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PurchaseRequest $purchaseRequest)
+    public function update(Request $request, $hashid)
     {
-        // Hanya admin yang bisa edit jika status masih PR
-        // if (Auth::user()->role !== 'admin' || $purchaseRequest->status !== 'PR') {
-        //     abort(403);
-        // }
+        $purchaseRequest = $this->resolveHashid($hashid);
 
         $validated = $request->validate([
             'nama_part' => 'required|string|max:255',
@@ -141,36 +148,28 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest->update($validated);
 
-        // Tambah log updated
-        $purchaseRequest->logs()->create([
-            'action' => 'updated',
-            'notes' => 'Request diperbarui oleh admin.',
-        ]);
 
-        return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil diperbarui.');
+
+        return redirect()->route('purchase_requests.show', $purchaseRequest->hashid)->with('success', 'Purchase Request berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PurchaseRequest $purchaseRequest)
+    public function destroy($hashid)
     {
-        // Hanya admin yang bisa hapus jika status masih PR
-        if (Auth::user()->role !== 'admin' || $purchaseRequest->status !== 'PR') {
-            abort(403);
-        }
+        $purchaseRequest = $this->resolveHashid($hashid);
+
+        // if (Auth::user()->role !== 'admin' || $purchaseRequest->status !== 'PR') {
+        //     abort(403);
+        // }
 
         $purchaseRequest->delete();
 
         return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil dihapus.');
     }
 
-    /**
-     * Approve the purchase request (only for super)
-     */
-    public function approve(PurchaseRequest $purchaseRequest)
+    public function approve($hashid)
     {
-        // Hanya super yang bisa approve
+        $purchaseRequest = $this->resolveHashid($hashid);
+
         if (Auth::user()->role !== 'super') {
             abort(403);
         }
@@ -178,22 +177,19 @@ class PurchaseRequestController extends Controller
         $purchaseRequest->status = 'PO';
         $purchaseRequest->save();
 
-        // Tambah log approved
         $purchaseRequest->logs()->create([
             'approved_by' => Auth::id(),
             'action' => 'approved',
             'notes' => 'Request disetujui oleh super.',
         ]);
 
-        return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil disetujui.');
+        return redirect()->route('purchase_requests.show', $purchaseRequest->hashid)->with('success', 'Purchase Request berhasil disetujui.');
     }
 
-    /**
-     * Reject the purchase request (only for super)
-     */
-    public function reject(Request $request, PurchaseRequest $purchaseRequest)
+    public function reject(Request $request, $hashid)
     {
-        // Hanya super yang bisa reject
+        $purchaseRequest = $this->resolveHashid($hashid);
+
         if (Auth::user()->role !== 'super') {
             abort(403);
         }
@@ -202,19 +198,47 @@ class PurchaseRequestController extends Controller
             'notes' => 'required|string|max:255',
         ]);
 
-        // Tambah log rejected
         $purchaseRequest->logs()->create([
             'approved_by' => Auth::id(),
             'action' => 'rejected',
             'notes' => $request->notes,
         ]);
 
-        return redirect()->route('purchase_requests.index')->with('success', 'Purchase Request berhasil ditolak.');
+        return redirect()->route('purchase_requests.show', $purchaseRequest->hashid)->with('success', 'Purchase Request berhasil ditolak.');
+    }
+    public function complete($hashid)
+    {
+        $purchaseRequest = $this->resolveHashid($hashid);
+
+        if (Auth::user()->role !== 'super') {
+            abort(403);
+        }
+
+        if ($purchaseRequest->status !== 'PO') {
+            return back()->with('error', 'Hanya PO yang bisa diselesaikan.');
+        }
+
+        $sparepart = null;
+        if ($purchaseRequest->sparepart_id) {
+            $sparepart = Spareparts::find($purchaseRequest->sparepart_id);
+            if ($sparepart) {
+                $sparepart->increment('jumlah_baru', $purchaseRequest->quantity);
+                $sparepart->update(['purchase_request_id' => null]);
+            }
+        }
+
+        $purchaseRequest->update(['status' => 'Completed']);
+
+        DB::table('notifications')
+            ->where('type', \App\Notifications\SparepartCriticalNotification::class)
+            ->whereJsonContains('data->sparepart_id', $sparepart?->hashid)
+            ->delete();
+
+        return redirect()
+            ->route('purchase_requests.show', $purchaseRequest->hashid)
+            ->with('success', 'PO selesai! Stok telah ditambahkan. Terima kasih atas kerjasamanya!');
     }
 
-    /**
-     * Export purchase requests to Excel
-     */
     public function unduh(): BinaryFileResponse
     {
         Log::info('excel method started for purchase requests export');
@@ -231,7 +255,7 @@ class PurchaseRequestController extends Controller
             return $response;
         } catch (\Exception $e) {
             Log::error('Error in excel method: ' . $e->getMessage());
-            throw $e; // Re-throw to ensure the error is visible in the response
+            throw $e;
         }
     }
 }

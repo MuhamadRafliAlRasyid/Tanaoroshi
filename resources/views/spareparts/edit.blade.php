@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('spareparts.update', $sparepart->id) }}" method="POST"
+            <form action="{{ route('spareparts.update', $sparepart->hashid) }}" method="POST"
                 class="bg-white p-6 rounded-lg shadow-lg space-y-4" id="sparepartForm">
                 @csrf
                 @method('PUT')

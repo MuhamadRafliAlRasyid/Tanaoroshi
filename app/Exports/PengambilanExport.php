@@ -16,11 +16,11 @@ use Maatwebsite\Excel\Events\AfterSheet;
 
 class PengambilanExport implements WithMultipleSheets
 {
-    protected $id;
+    protected $hashid;
 
     public function __construct($id = null)
     {
-        $this->id = $id;
+        $this->hashid = $id;
     }
 
     public function sheets(): array
@@ -28,7 +28,7 @@ class PengambilanExport implements WithMultipleSheets
         $sheets = [];
 
         // Sheet 1: Arsip Pengambil (Putih dengan tulisan hitam)
-        $sheets[] = new class($this->id) implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents {
+        $sheets[] = new class($this->hashid) implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents {
             protected $id;
 
             public function __construct($id)
@@ -110,7 +110,7 @@ class PengambilanExport implements WithMultipleSheets
         };
 
         // Sheet 2: Arsip Diambil (Merah dengan tulisan biru)
-        $sheets[] = new class($this->id) implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents {
+        $sheets[] = new class($this->hashid) implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents {
             protected $id;
 
             public function __construct($id)

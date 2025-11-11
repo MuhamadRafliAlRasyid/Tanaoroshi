@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PengambilanSparepart extends Model
 {
     use HasFactory;
+    use HasHashId;
 
     protected $table = 'pengambilan_spareparts';
     protected $fillable = [
@@ -21,6 +23,13 @@ class PengambilanSparepart extends Model
         'waktu_pengambilan'
     ];
 
+public function scopeFindByHashidOrFail($query, $hashid)
+{
+    $decoded = app(\App\Services\HashIdService::class)->decode($hashid);
+    if (!$decoded) abort(404);
+
+    return $query->findOrFail($decoded);
+}
     public function user()
     {
         return $this->belongsTo(User::class);

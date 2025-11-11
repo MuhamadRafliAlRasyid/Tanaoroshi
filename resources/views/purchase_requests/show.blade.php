@@ -112,11 +112,14 @@
                 </div>
 
                 <!-- User -->
+                <!-- User -->
                 <div class="col-span-full bg-gray-50 p-4 rounded-lg shadow-inner hover:shadow-md transition-shadow">
                     <p class="font-semibold text-indigo-600 flex items-center" title="Pengaju permintaan">
-                        <i class="fas fa-user-tie mr-2"></i> User:
+                        User:
                     </p>
-                    <p class="mt-1 text-lg font-medium">{{ $purchaseRequest->user->name }}</p>
+                    <p class="mt-1 text-lg font-medium">
+                        {{ $purchaseRequest->user->name ?? 'User tidak ditemukan' }}
+                    </p>
                 </div>
             </div>
 
@@ -127,8 +130,20 @@
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
                 <div class="flex space-x-4">
+                    <!-- Di dalam div action buttons -->
+                    @if ($purchaseRequest->status === 'PO' && Auth::user()->role === 'super')
+                        <form action="{{ route('purchase_requests.complete', $purchaseRequest->hashid) }}" method="POST"
+                            class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-105 flex items-center group"
+                                onclick="return confirm('Selesaikan PO dan tambahkan stok?');">
+                                <i class="fas fa-check-circle mr-2"></i> Selesai
+                            </button>
+                        </form>
+                    @endif
                     @if ($purchaseRequest->status !== 'Completed')
-                        <a href="{{ route('purchase_requests.edit', $purchaseRequest->id) }}"
+                        <a href="{{ route('purchase_requests.edit', $purchaseRequest->hashid) }}"
                             class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-105 flex items-center group"
                             title="Ubah detail pengajuan">
                             <i class="fas fa-edit mr-2"></i> Edit

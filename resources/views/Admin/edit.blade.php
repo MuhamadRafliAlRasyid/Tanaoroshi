@@ -10,7 +10,7 @@
                 <i class="fas fa-edit mr-2 text-indigo-600"></i> Edit User
             </h1>
 
-            <form action="{{ route('admin.update', $user->id) }}" method="POST" enctype="multipart/form-data"
+            <form action="{{ route('admin.update', $user->hashid) }}" method="POST" enctype="multipart/form-data"
                 class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                 @csrf
                 @method('PUT')

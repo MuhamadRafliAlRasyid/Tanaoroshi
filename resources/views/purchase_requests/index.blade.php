@@ -110,17 +110,17 @@
                                     <span class="truncate max-w-xs block">{{ $approvalStatus }}</span>
                                 </td> --}}
                                 <td class="px-4 py-3 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('purchase_requests.show', $item->id) }}"
+                                    <a href="{{ route('purchase_requests.show', $item->hashid) }}"
                                         class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Lihat detail pengajuan">
                                         <i class="fas fa-eye mr-1"></i> Detail
                                     </a>
-                                    <a href="{{ route('purchase_requests.edit', $item->id) }}"
+                                    <a href="{{ route('purchase_requests.edit', $item->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Ubah pengajuan">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('purchase_requests.destroy', $item->id) }}" method="POST"
+                                    <form action="{{ route('purchase_requests.destroy', $item->hashid) }}" method="POST"
                                         onsubmit="return confirm('Yakin hapus data ini?');" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -131,8 +131,8 @@
                                         </button>
                                     </form>
                                     @if (Auth::user()->role === 'super' && $item->status === 'PR')
-                                        <form action="{{ route('purchase_requests.approve', $item->id) }}" method="POST"
-                                            class="inline">
+                                        <form action="{{ route('purchase_requests.approve', $item->hashid) }}"
+                                            method="POST" class="inline">
                                             @csrf
                                             <button type="submit"
                                                 class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200 transform hover:scale-105 relative group"
@@ -140,8 +140,8 @@
                                                 <i class="fas fa-check mr-1"></i> Setujui
                                             </button>
                                         </form>
-                                        <form action="{{ route('purchase_requests.reject', $item->id) }}" method="POST"
-                                            class="inline">
+                                        <form action="{{ route('purchase_requests.reject', $item->hashid) }}"
+                                            method="POST" class="inline">
                                             @csrf
                                             <input type="hidden" name="notes" value="Rejected">
                                             <button type="submit"

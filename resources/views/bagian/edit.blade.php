@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('bagian.update', $bagian) }}" method="POST"
+            <form action="{{ route('bagian.update', $bagian->hashid) }}" method="POST"
                 class="bg-white p-6 rounded-lg shadow-lg space-y-4">
                 @csrf
                 @method('PUT')

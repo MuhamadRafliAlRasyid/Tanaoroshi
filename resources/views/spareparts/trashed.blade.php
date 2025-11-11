@@ -16,6 +16,14 @@
                 </div>
             @endif
 
+            <!-- Tombol Kembali -->
+            <div class="mb-4 text-left">
+                <a href="{{ route('spareparts.index') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                    <i class="fas fa-arrow-left mr-2"></i> Kembali
+                </a>
+            </div>
+
             <!-- Tabel Data Terhapus -->
             <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
                 <table class="w-full text-left">
@@ -38,13 +46,13 @@
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->jumlah_baru }}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="{{ route('spareparts.restore', $sparepart->id) }}"
+                                    <a href="{{ route('spareparts.restore', $sparepart->hashid) }}"
                                         class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Kembalikan Sparepart"
                                         onclick="return confirm('Yakin ingin mengembalikan sparepart ini?')">
                                         <i class="fas fa-undo mr-1"></i> Kembalikan
                                     </a>
-                                    <form action="{{ route('spareparts.forceDelete', $sparepart->id) }}" method="POST"
+                                    <form action="{{ route('spareparts.forceDelete', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;"
                                         onsubmit="return confirm('Yakin ingin menghapus permanen? Data tidak bisa dikembalikan!')">
                                         @csrf

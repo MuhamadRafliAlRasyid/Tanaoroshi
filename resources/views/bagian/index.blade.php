@@ -49,12 +49,13 @@
                                 <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
                                 <td class="px-4 py-2 text-gray-900">{{ $bagian->nama }}</td>
                                 <td class="px-4 py-2 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('bagian.edit', $bagian->id) }}"
+                                    <a href="{{ route('bagian.edit', $bagian->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit Bagian">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('bagian.destroy', $bagian->id) }}" method="POST" class="inline">
+                                    <form action="{{ route('bagian.destroy', $bagian->hashid) }}" method="POST"
+                                        class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

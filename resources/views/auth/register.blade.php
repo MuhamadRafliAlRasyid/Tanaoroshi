@@ -1,18 +1,21 @@
 @extends('layouts.guest')
 
-@section('title', 'Register')
+@section('title', 'Daftar')
+@section('subtitle', 'Buat akun baru untuk mengelola sparepart')
 
 @section('content')
     <div class="container">
-        <div>
-            <h2 class="text-center text-2xl font-semibold text-gray-800 mb-4">Daftar Akun Baru</h2>
-            <p class="mt-2 text-sm text-gray-600 text-center">Bergabunglah untuk mengelola sparepart dengan mudah!</p>
+        <!-- Logo -->
+        <div class="logo-wrapper">
+            <div class="logo-container">
+                <img src="{{ asset('images/logo.jpg') }}" alt="Logo" onerror="this.src='{{ asset('images/logo.jpg') }}'">
+            </div>
         </div>
 
+        <!-- Error Messages -->
         @if ($errors->any())
-            <div
-                class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg transition duration-300 ease-in-out">
-                <ul class="list-disc list-inside text-sm">
+            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm animate-fade-in">
+                <ul class="list-disc list-inside">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -20,89 +23,92 @@
             </div>
         @endif
 
-        <form id="registerForm" action="{{ route('register') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <!-- Form -->
+        <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm"
+            class="space-y-5">
             @csrf
-            <div class="space-y-6">
-                <!-- Nama Lengkap -->
-                <div class="form-group">
-                    <label for="name">Nama Lengkap</label>
-                    <input type="text" id="name" name="name" value="{{ old('name') }}" required
-                        class="focus:placeholder-transparent">
-                    <span id="nameError" class="error">Nama wajib diisi.</span>
-                </div>
 
-                <!-- Alamat Email -->
-                <div class="form-group">
-                    <label for="email">Alamat Email</label>
-                    <input type="email" id="email" name="email" value="{{ old('email') }}" required
-                        class="focus:placeholder-transparent">
-                    <span id="emailError" class="error">Email tidak valid.</span>
-                </div>
-
-                <!-- Kata Sandi -->
-                <div class="form-group">
-                    <label for="password">Kata Sandi</label>
-                    <div class="relative">
-                        <input type="password" id="password" name="password" required
-                            class="focus:placeholder-transparent pr-10 w-full">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm cursor-pointer"
-                            onclick="togglePasswordVisibility('password', 'eyeIconPassword')">
-                            <i class="fas fa-eye-slash" id="eyeIconPassword"></i>
-                        </span>
-                    </div>
-                    <span id="passwordError" class="error">Kata sandi minimal 6 karakter.</span>
-                </div>
-
-                <!-- Konfirmasi Kata Sandi -->
-                <div class="form-group">
-                    <label for="password_confirmation">Konfirmasi Kata Sandi</label>
-                    <div class="relative">
-                        <input type="password" id="password_confirmation" name="password_confirmation" required
-                            class="focus:placeholder-transparent pr-10 w-full">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm cursor-pointer"
-                            onclick="togglePasswordVisibility('password_confirmation', 'eyeIconConfirm')">
-                            <i class="fas fa-eye-slash" id="eyeIconConfirm"></i>
-                        </span>
-                    </div>
-                    <span id="confirmPasswordError" class="error">Konfirmasi kata sandi tidak cocok.</span>
-                </div>
-
-                <!-- Peran -->
-                <div class="form-group">
-                    <label for="role">Peran</label>
-                    <select id="role" name="role" required>
-                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Pengguna</option>
-                        <option value="spv" {{ old('role') == 'spv' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                    </select>
-                </div>
-
-                <!-- Bagian -->
-                <div class="form-group">
-                    <label for="bagian_id">Bagian</label>
-                    <select id="bagian_id" name="bagian_id">
-                        <option value="">Pilih Bagian</option>
-                        @forelse ($bagians as $bagian)
-                            <option value="{{ $bagian->id }}" {{ old('bagian_id') == $bagian->id ? 'selected' : '' }}>
-                                {{ $bagian->nama }}</option>
-                        @empty
-                            <option disabled>Tidak ada bagian tersedia</option>
-                        @endforelse
-                    </select>
-                </div>
-
-                <!-- Foto Profil -->
-                <div class="form-group">
-                    <label for="profile_photo">Foto Profil</label>
-                    <input type="file" id="profile_photo" name="profile_photo" class="file-input">
-                    <span id="photoError" class="error">Format file harus JPG, JPEG, atau PNG (maks. 2MB). File
-                        opsional.</span>
-                </div>
+            <!-- Nama Lengkap -->
+            <div class="form-group">
+                <label for="name">Nama Lengkap</label>
+                <input type="text" name="name" id="name" value="{{ old('name') }}" required>
+                <span class="error" id="nameError">Nama wajib diisi.</span>
             </div>
 
-            <button type="submit">Daftar Sekarang</button>
-            <div class="links">
-                <a href="{{ route('login') }}">Sudah punya akun? Login</a>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" value="{{ old('email') }}" required>
+                <span class="error" id="emailError">Email tidak valid.</span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Kata Sandi</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('password', 'eyePass')">
+                        <i class="fas fa-eye-slash" id="eyePass"></i>
+                    </span>
+                </div>
+                <span class="error" id="passError">Minimal 6 karakter.</span>
+            </div>
+
+            <!-- Konfirmasi Password -->
+            <div class="form-group">
+                <label for="password_confirmation">Konfirmasi Kata Sandi</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password_confirmation" id="password_confirmation" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('password_confirmation', 'eyeConfirm')">
+                        <i class="fas fa-eye-slash" id="eyeConfirm"></i>
+                    </span>
+                </div>
+                <span class="error" id="confirmError">Password tidak cocok.</span>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Peran</label>
+                <select name="role" id="role" required class="cursor-pointer">
+                    <option value="">Pilih Peran</option>
+                    <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Pengguna</option>
+                    <option value="spv" {{ old('role') == 'spv' ? 'selected' : '' }}>Supervisor</option>
+                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                </select>
+            </div>
+
+            <!-- Bagian -->
+            <div class="form-group">
+                <label for="bagian_id">Bagian</label>
+                <select name="bagian_id" id="bagian_id" class="cursor-pointer">
+                    <option value="">Pilih Bagian (opsional)</option>
+                    @forelse($bagians as $bagian)
+                        <option value="{{ $bagian->id }}" {{ old('bagian_id') == $bagian->id ? 'selected' : '' }}>
+                            {{ $bagian->nama }}
+                        </option>
+                    @empty
+                        <option disabled>Tidak ada bagian tersedia</option>
+                    @endforelse
+                </select>
+            </div>
+
+            <!-- Foto Profil -->
+            <div class="form-group">
+                <label for="profile_photo">Foto Profil (opsional)</label>
+                <input type="file" name="profile_photo" id="profile_photo" accept="image/jpeg,image/jpg,image/png">
+                <span class="error" id="photoError">File harus JPG/PNG, maks 2MB.</span>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit">
+                <i class="fas fa-user-plus"></i>
+                <span>Daftar Sekarang</span>
+            </button>
+
+            <div class="text-center mt-4">
+                <a href="{{ route('login') }}" class="text-indigo-600 text-sm hover:underline">
+                    Sudah punya akun? Masuk
+                </a>
             </div>
         </form>
     </div>
@@ -111,66 +117,62 @@
 @push('scripts')
     <script>
         function togglePasswordVisibility(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
-            eyeIcon.classList.toggle('fa-eye-slash');
-            eyeIcon.classList.toggle('fa-eye');
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
         }
 
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            let isValid = true;
+            let valid = true;
 
-            // Validasi Nama
+            // Reset semua error
+            document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
+
+            // Nama
             const name = document.getElementById('name').value.trim();
             if (!name) {
                 document.getElementById('nameError').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('nameError').style.display = 'none';
+                valid = false;
             }
 
-            // Validasi Email
+            // Email
             const email = document.getElementById('email').value.trim();
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailPattern.test(email)) {
                 document.getElementById('emailError').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('emailError').style.display = 'none';
+                valid = false;
             }
 
-            // Validasi Password
-            const password = document.getElementById('password').value;
-            if (password.length < 6) {
-                document.getElementById('passwordError').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('passwordError').style.display = 'none';
+            // Password
+            const pass = document.getElementById('password').value;
+            if (pass.length < 6) {
+                document.getElementById('passError').style.display = 'block';
+                valid = false;
             }
 
-            // Validasi Konfirmasi Password
-            const confirmPassword = document.getElementById('password_confirmation').value;
-            if (password !== confirmPassword) {
-                document.getElementById('confirmPasswordError').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('confirmPasswordError').style.display = 'none';
+            // Konfirmasi
+            const confirm = document.getElementById('password_confirmation').value;
+            if (pass !== confirm) {
+                document.getElementById('confirmError').style.display = 'block';
+                valid = false;
             }
 
-            // Validasi Foto
-            const photo = document.getElementById('profile_photo').files[0];
-            if (photo && (photo.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/jpg'].includes(photo
-                    .type))) {
-                document.getElementById('photoError').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('photoError').style.display = 'none';
+            // Foto
+            const file = document.getElementById('profile_photo').files[0];
+            if (file) {
+                const maxSize = 2 * 1024 * 1024;
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (file.size > maxSize || !validTypes.includes(file.type)) {
+                    document.getElementById('photoError').style.display = 'block';
+                    valid = false;
+                }
             }
 
-            if (isValid) {
+            if (valid) {
                 this.submit();
             }
         });

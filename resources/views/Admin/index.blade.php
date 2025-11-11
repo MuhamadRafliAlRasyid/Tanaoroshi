@@ -7,7 +7,7 @@
         <section
             class="w-full max-w-5xl bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 hover:shadow-3xl">
             <h2 class="text-3xl font-bold text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-3 flex items-center">
-                <i class="fas fa-users mr-2 text-indigo-600"></i> Daftar User
+                Daftar User
             </h2>
 
             @if (session('success'))
@@ -26,15 +26,15 @@
                             class="w-full md:w-72 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm pr-10">
                         <button type="submit"
                             class="absolute right-2 top-2 text-gray-500 hover:text-indigo-600 focus:outline-none">
-                            <i class="fas fa-search"></i>
+                            Search
                         </button>
+                    </div>
                 </form>
-            </div>
 
-            <a href="{{ route('admin.create') }}"
-                class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-105 flex items-center">
-                <i class="fas fa-plus mr-2"></i> Tambah User
-            </a>
+                <a href="{{ route('admin.create') }}"
+                    class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-105 flex items-center">
+                    Tambah User
+                </a>
             </div>
 
             <div class="overflow-x-auto">
@@ -52,32 +52,46 @@
                     <tbody>
                         @forelse ($users as $index => $user)
                             <tr class="border-b hover:bg-gray-50 transition-all duration-200">
-                                <td class="px-4 py-3 text-center">{{ $index + 1 }}</td>
-                                <td class="px-4 py-3 break-words text-gray-900">{{ $user->name }}</td>
+                                <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-3 break-words text-gray-900 font-medium">{{ $user->name }}</td>
                                 <td class="px-4 py-3 break-words text-gray-700">{{ $user->email }}</td>
-                                <td class="px-4 py-3 text-center text-gray-600">{{ $user->bagian->nama ?? '-' }}</td>
-                                <td class="px-4 py-3 text-center capitalize text-indigo-700">{{ $user->role }}</td>
+                                <td class="px-4 py-3 text-center text-gray-600">{{ $user->bagian?->nama ?? '-' }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        class="px-3 py-1 text-xs font-semibold rounded-full
+                                        @if ($user->role === 'admin') bg-purple-100 text-purple-800
+                                        @elseif($user->role === 'super') bg-red-100 text-red-800
+                                        @else bg-blue-100 text-blue-800 @endif">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
                                 <td class="px-4 py-3 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('admin.edit', $user->id) }}"
+                                    <!-- EDIT -->
+                                    <a href="{{ route('admin.edit', $user->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit User">
-                                        <i class="fas fa-edit mr-1"></i> Edit
+                                        Edit
                                     </a>
-                                    <form action="{{ route('admin.destroy', $user->id) }}" method="POST"
-                                        onsubmit="return confirm('Yakin hapus user ini?');" class="inline">
+
+                                    <!-- DELETE -->
+                                    <form action="{{ route('admin.destroy', $user->hashid) }}" method="POST"
+                                        onsubmit="return confirm('Yakin ingin menghapus user {{ $user->name }}?');"
+                                        class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
                                             class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
                                             title="Hapus User">
-                                            <i class="fas fa-trash mr-1"></i> Hapus
+                                            Hapus
                                         </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-4 text-center text-gray-500">Tidak ada data user.</td>
+                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                    Belum ada data user.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
