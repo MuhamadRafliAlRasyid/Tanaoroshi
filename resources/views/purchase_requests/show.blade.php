@@ -129,32 +129,44 @@
                     class="flex items-center text-gray-700 font-semibold hover:text-indigo-700 transition duration-300 transform hover:scale-105">
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
-                <div class="flex space-x-4">
-                    <!-- Di dalam div action buttons -->
-                    @if ($purchaseRequest->status === 'PO' && Auth::user()->role === 'super')
+                <!-- resources/views/purchase_requests/show.blade.php -->
+
+                <div class="mt-6 flex gap-3">
+                    @if ($purchaseRequest->status === 'PO' && Auth::user()->role === 'admin')
                         <form action="{{ route('purchase_requests.complete', $purchaseRequest->hashid) }}" method="POST"
                             class="inline">
                             @csrf
                             <button type="submit"
-                                class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition transform hover:scale-105 flex items-center group"
-                                onclick="return confirm('Selesaikan PO dan tambahkan stok?');">
-                                <i class="fas fa-check-circle mr-2"></i> Selesai
+                                class="bg-green-600 text-white font-bold px-5 py-2 rounded-lg hover:bg-green-700 transition shadow-md flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i> Complete & Tambah Stok
                             </button>
                         </form>
                     @endif
-                    @if ($purchaseRequest->status !== 'Completed')
-                        <a href="{{ route('purchase_requests.edit', $purchaseRequest->hashid) }}"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-105 flex items-center group"
-                            title="Ubah detail pengajuan">
-                            <i class="fas fa-edit mr-2"></i> Edit
-                        </a>
+
+                    @if ($purchaseRequest->status === 'PR' && Auth::user()->role === 'super')
+                        <form action="{{ route('purchase_requests.approve', $purchaseRequest->hashid) }}" method="POST"
+                            class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                Approve → PO
+                            </button>
+                        </form>
                     @endif
-                    <button onclick="window.print()"
-                        class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700 transition transform hover:scale-105 flex items-center group"
-                        title="Cetak detail pengajuan">
-                        <i class="fas fa-print mr-2"></i> Cetak
-                    </button>
                 </div>
+                @if ($purchaseRequest->status !== 'Completed')
+                    <a href="{{ route('purchase_requests.edit', $purchaseRequest->hashid) }}"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-105 flex items-center group"
+                        title="Ubah detail pengajuan">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                    </a>
+                @endif
+                <button onclick="window.print()"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700 transition transform hover:scale-105 flex items-center group"
+                    title="Cetak detail pengajuan">
+                    <i class="fas fa-print mr-2"></i> Cetak
+                </button>
+            </div>
             </div>
         </section>
     </main>

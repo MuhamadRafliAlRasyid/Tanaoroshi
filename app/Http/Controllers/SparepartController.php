@@ -62,62 +62,44 @@ class SparepartController extends Controller
     }
 
     public function index(Request $request)
-    {
-        $query = Spareparts::query();
+{
+    $query = Spareparts::query();
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('nama_part', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%")
-                    ->orWhere('model', 'like', "%{$search}%")
-                    ->orWhere('merk', 'like', "%{$search}%")
-                    ->orWhere('jumlah_baru', 'like', "%{$search}%")
-                    ->orWhere('jumlah_bekas', 'like', "%{$search}%")
-                    ->orWhere('supplier', 'like', "%{$search}%")
-                    ->orWhere('patokan_harga', 'like', "%{$search}%")
-                    ->orWhere('total', 'like', "%{$search}%")
-                    ->orWhere('ruk_no', 'like', "%{$search}%")
-                    ->orWhere('purchase_date', 'like', "%{$search}%")
-                    ->orWhere('delivery_date', 'like', "%{$search}%")
-                    ->orWhere('po_number', 'like', "%{$search}%")
-                    ->orWhere('titik_pesanan', 'like', "%{$search}%")
-                    ->orWhere('jumlah_pesanan', 'like', "%{$search}%")
-                    ->orWhere('cek', 'like', "%{$search}%")
-                    ->orWhere('pic', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('qr_code', 'like', "%{$search}%");
-            });
-        }
-
-        $spareparts = $query->paginate(10)->withQueryString();
-
-        // Admins
-        $admins = User::where('role', 'admin')->get();
-
-        foreach ($spareparts as $sparepart) {
-            if ($sparepart->jumlah_baru <= $sparepart->titik_pesanan) {
-                // Kirim notif kalau kritis
-                if (!$sparepart->last_notified_at || $sparepart->updated_at > $sparepart->last_notified_at) {
-                    Notification::send($admins, new SparepartCriticalNotification($sparepart));
-                    $sparepart->update(['last_notified_at' => now()]);
-                }
-            } else {
-                // Jika stok sudah normal, hapus notif lama
-                DB::table('notifications')
-                    ->where('type', \App\Notifications\SparepartCriticalNotification::class)
-                    ->whereJsonContains('data->sparepart_id', $sparepart->id)
-                    ->delete();
-
-                // Reset flag notif
-                if ($sparepart->last_notified_at) {
-                    $sparepart->update(['last_notified_at' => null]);
-                }
-            }
-        }
-
-        return view('spareparts.index', compact('spareparts'));
+    if ($request->has('search')) {
+        $search = $request->input('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('nama_part', 'like', "%{$search}%")
+                ->orWhere('id', 'like', "%{$search}%")
+                ->orWhere('model', 'like', "%{$search}%")
+                ->orWhere('merk', 'like', "%{$search}%")
+                ->orWhere('jumlah_baru', 'like', "%{$search}%")
+                ->orWhere('jumlah_bekas', 'like', "%{$search}%")
+                ->orWhere('supplier', 'like', "%{$search}%")
+                ->orWhere('patokan_harga', 'like', "%{$search}%")
+                ->orWhere('total', 'like', "%{$search}%")
+                ->orWhere('ruk_no', 'like', "%{$search}%")
+                ->orWhere('purchase_date', 'like', "%{$search}%")
+                ->orWhere('delivery_date', 'like', "%{$search}%")
+                ->orWhere('po_number', 'like', "%{$search}%")
+                ->orWhere('titik_pesanan', 'like', "%{$search}%")
+                ->orWhere('jumlah_pesanan', 'like', "%{$search}%")
+                ->orWhere('cek', 'like', "%{$search}%")
+                ->orWhere('pic', 'like', "%{$search}%")
+                ->orWhere('qr_code', 'like', "%{$search}%");
+        });
     }
+
+    $spareparts = $query->paginate(10)->withQueryString();
+
+    // Hanya di halaman utama saja
+if (!$request->has('search') && !$request->ajax()) {
+    $this->checkStock();
+}
+// ✅ Hanya 2-3 queries di halaman utama
+// ✅ 0 queries selama search/AJAX
+
+    return view('spareparts.index', compact('spareparts'));
+}
 
     public function create()
     {
@@ -221,23 +203,39 @@ class SparepartController extends Controller
     $pdf = Pdf::loadView('spareparts.kanban', compact('sparepart'))->setPaper('A4');
     return $pdf->download("Kanban-{$sparepart->ruk_no}.pdf");
 }
-    public function checkStock()
-    {
-        $criticalSpareparts = Spareparts::whereColumn('jumlah_baru', '<=', 'titik_pesanan')->get();
+   public function checkStock()
+{
+    $admins = User::where('role', 'admin')->get();
+    if ($admins->isEmpty()) return;
 
-        if ($criticalSpareparts->isEmpty()) {
-            Log::info('No critical stock found during check.');
-            return response()->json(['message' => 'No critical stock found.']);
-        }
+    // 1. KIRIM NOTIFIKASI: Hanya SEKALI (jika last_notified_at NULL)
+    $criticalSpareparts = Spareparts::whereColumn('jumlah_baru', '<=', 'titik_pesanan')
+        ->whereNull('last_notified_at')
+        ->get();
 
-        $admins = User::where('role', 'admin')->get();
-        foreach ($criticalSpareparts as $sparepart) {
-            Log::info("Sending notification for sparepart ID: {$sparepart->id}, Jumlah Baru: {$sparepart->jumlah_baru}, Titik Pesanan: {$sparepart->titik_pesanan}");
-            Notification::send($admins, new SparepartCriticalNotification($sparepart));
-        }
+    $criticalSpareparts->each(function ($sparepart) use ($admins) {
+        Notification::send($admins, new SparepartCriticalNotification($sparepart));
+        $sparepart->update(['last_notified_at' => now()]);
+    });
 
-        return response()->json(['message' => 'Stock checked, notifications sent to admins for ' . $criticalSpareparts->count() . ' critical items']);
-    }
+    // 2. HAPUS NOTIFIKASI: Jika stok sudah normal kembali
+    $recoveredSpareparts = Spareparts::whereColumn('jumlah_baru', '>', 'titik_pesanan')
+        ->whereNotNull('last_notified_at')
+        ->get();
+
+    $recoveredSpareparts->each(function ($sparepart) {
+        DB::table('notifications')
+            ->where('type', \App\Notifications\SparepartCriticalNotification::class)
+            ->whereJsonContains('data->sparepart_id', $sparepart->id)
+            ->delete();
+        $sparepart->update(['last_notified_at' => null]);
+    });
+
+    return [
+        'critical' => $criticalSpareparts->count(),
+        'recovered' => $recoveredSpareparts->count()
+    ];
+}
 
     protected function generateQrCode(Spareparts $sparepart, string $location): void
 {

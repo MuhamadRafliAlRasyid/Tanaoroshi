@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\HashIdService;
 use App\Models\Traits\HasHashId;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
@@ -34,25 +35,33 @@ class Spareparts extends Model
         'cek',
         'pic',
         'qr_code',
-        'last_notified_at'
+        'last_notified_at',
+        'purchase_request_id'
     ];
 
     protected $dates = ['deleted_at', 'purchase_date', 'delivery_date', 'last_notified_at'];
 
     protected $casts = [
-        'cek' => 'boolean',
-        'patokan_harga' => 'float',
-        'total' => 'float',
-        'purchase_date' => 'date',
-        'delivery_date' => 'date',
-        'jumlah_baru' => 'integer',
-        'jumlah_bekas' => 'integer',
-        'jumlah_pesanan' => 'integer'
-    ];
+    'cek' => 'boolean',
+    'patokan_harga' => 'float',
+    'total' => 'float',
+    'purchase_date' => 'date',
+    'delivery_date' => 'date',
+    'jumlah_baru' => 'integer',
+    'jumlah_bekas' => 'integer',
+    'jumlah_pesanan' => 'integer',
+    'last_notified_at' => 'datetime',
+];
+
 
     /* ===========================
      * SETTER METHODS
      * =========================== */
+     public function getHashidAttribute()
+    {
+        return app(HashIdService::class)->encode($this->id);
+    }
+
     public function setJumlahBaruAttribute($value)
     {
         $this->attributes['jumlah_baru'] = (int) $this->normalizeNumber($value);

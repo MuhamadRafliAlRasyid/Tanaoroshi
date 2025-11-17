@@ -19,6 +19,6 @@ class SuperDashboardController extends BaseController
         $rejectedRequests = RequestLog::where('action', 'rejected')->distinct('purchase_request_id')->count('purchase_request_id');
         $recentLogs = RequestLog::with(['purchaseRequest', 'approvedBy'])->latest()->take(5)->get();
 
-        return view('super.dashboard', compact('totalRequests', 'approvedRequests', 'rejectedRequests', 'recentLogs'));
+        return view('Super.dashboard', compact('totalRequests', 'approvedRequests', 'rejectedRequests', 'recentLogs'));
     }
 }

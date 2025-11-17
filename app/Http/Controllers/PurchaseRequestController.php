@@ -207,37 +207,60 @@ class PurchaseRequestController extends Controller
         return redirect()->route('purchase_requests.show', $purchaseRequest->hashid)->with('success', 'Purchase Request berhasil ditolak.');
     }
     public function complete($hashid)
-    {
-        $purchaseRequest = $this->resolveHashid($hashid);
+{
+    $purchaseRequest = $this->resolveHashid($hashid);
 
-        if (Auth::user()->role !== 'super') {
-            abort(403);
+    // HANYA SUPER YANG BISA
+    if (Auth::user()->role !== 'admin') {
+        abort(403);
+    }
+
+    if ($purchaseRequest->status !== 'PO') {
+        return back()->with('error', 'Hanya PO yang bisa diselesaikan.');
+    }
+
+    $updated = false;
+    $quantity = $purchaseRequest->quantity;
+    $newStock = 'N/A';
+
+    if ($purchaseRequest->sparepart_id) {
+        $sparepart = Spareparts::find($purchaseRequest->sparepart_id);
+
+        if ($sparepart) {
+            // TAMBAH STOK
+            $oldStock = $sparepart->jumlah_baru;
+            $sparepart->increment('jumlah_baru', $quantity);
+            $newStock = $sparepart->jumlah_baru; // Simpan untuk pesan
+
+            // RESET PR
+            $sparepart->update(['purchase_request_id' => null]);
+
+            $updated = true;
+
+            Log::info("STOK DIPERBARUI: {$sparepart->nama_part} | {$oldStock} → {$newStock}");
         }
+    }
 
-        if ($purchaseRequest->status !== 'PO') {
-            return back()->with('error', 'Hanya PO yang bisa diselesaikan.');
-        }
+    // UBAH STATUS PR
+    $purchaseRequest->update(['status' => 'Completed']);
 
-        $sparepart = null;
-        if ($purchaseRequest->sparepart_id) {
-            $sparepart = Spareparts::find($purchaseRequest->sparepart_id);
-            if ($sparepart) {
-                $sparepart->increment('jumlah_baru', $purchaseRequest->quantity);
-                $sparepart->update(['purchase_request_id' => null]);
-            }
-        }
-
-        $purchaseRequest->update(['status' => 'Completed']);
-
+    // HAPUS NOTIFIKASI (PAKAI ID)
+    if ($purchaseRequest->sparepart_id) {
         DB::table('notifications')
             ->where('type', \App\Notifications\SparepartCriticalNotification::class)
-            ->whereJsonContains('data->sparepart_id', $sparepart?->hashid)
+            ->whereJsonContains('data->sparepart_id', $purchaseRequest->sparepart_id)
             ->delete();
-
-        return redirect()
-            ->route('purchase_requests.show', $purchaseRequest->hashid)
-            ->with('success', 'PO selesai! Stok telah ditambahkan. Terima kasih atas kerjasamanya!');
     }
+
+    // GUNAKAN isset() BUKAN ??
+    $message = $updated
+        ? "PO selesai! Stok bertambah {$quantity} unit (total: " . (isset($newStock) ? $newStock : 'N/A') . ")."
+        : "PO selesai, tapi sparepart tidak ditemukan.";
+
+    return redirect()
+        ->route('purchase_requests.show', $purchaseRequest->hashid)
+        ->with('success', $message);
+}
 
     public function unduh(): BinaryFileResponse
     {

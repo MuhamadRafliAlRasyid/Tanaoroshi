@@ -150,32 +150,77 @@
             <div class="flex items-center space-x-3">
                 <!-- Notifikasi -->
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 relative">
-                        <i class="fas fa-bell text-lg text-gray-700"></i>
+                    <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 relative transition-all">
+                        <i class="fas fa-bell text-xl text-gray-700"></i>
                         @if (auth()->user()->unreadNotifications->count() > 0)
                             <span
-                                class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md animate-pulse"
+                                style="min-width: 20px; height: 20px; padding: 0 5px;">
                                 {{ auth()->user()->unreadNotifications->count() }}
                             </span>
                         @endif
                     </button>
+
+                    <!-- Dropdown Notifikasi -->
                     <div x-show="open" x-transition @click.away="open = false"
-                        class="absolute right-0 mt-2 w-72 bg-white border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                        <div class="p-3 font-bold border-b text-sm">Notifikasi</div>
-                        <div class="max-h-64 overflow-y-auto">
-                            @forelse(auth()->user()->unreadNotifications as $notif)
-                                <a href="{{ $notif->data['action_url'] }}"
-                                    class="block p-3 hover:bg-gray-50 border-b text-sm">
-                                    <span class="text-red-600 font-medium">Peringatan:</span>
-                                    Stok <strong>{{ $notif->data['nama_part'] }}</strong> kritis!<br>
-                                    Sisa: {{ $notif->data['jumlah_baru'] }} | Titik Pesanan:
-                                    {{ $notif->data['titik_pesanan'] }}
-                                    <span class="block text-blue-600 text-xs mt-1">Klik untuk ajukan</span>
+                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                        <div class="bg-gradient-to-r from-red-50 to-pink-50 p-3 border-b">
+                            <h3 class="font-bold text-sm text-red-800">Notifikasi Kritis</h3>
+                            @if(auth()->user()->unreadNotifications->count() > 0)
+                                <p class="text-xs text-red-600 mt-1">{{ auth()->user()->unreadNotifications->count() }} sparepart perlu perhatian</p>
+                            @endif
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            @php
+                                // Urutkan notifikasi berdasarkan sparepart_id secara ASC (terlama dulu)
+                                $sortedNotifications = auth()->user()->unreadNotifications
+                                    ->sortBy(function($notif) {
+                                        return $notif->data['sparepart_id'] ?? 0;
+                                    });
+                            @endphp
+
+                            @forelse($sortedNotifications as $notif)
+                                <a href="{{ $notif->data['action_url'] ?? '#' }}"
+                                    class="block p-4 hover:bg-gray-50 transition-all border-b last:border-0 group">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-2 h-2 bg-red-600 rounded-full mt-1.5 animate-pulse"></div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start">
+                                                <p class="font-semibold text-sm text-gray-900">{{ $notif->data['nama_part'] }}</p>
+                                                <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                                    #{{ $notif->data['sparepart_id'] ?? 'N/A' }}
+                                                </span>
+                                            </div>
+                                            <p class="text-xs text-gray-600 mt-1">
+                                                Stok: <span class="font-bold text-red-600">{{ $notif->data['jumlah_baru'] }}</span>
+                                                ≤ Titik: <span class="font-bold">{{ $notif->data['titik_pesanan'] }}</span>
+                                            </p>
+                                            <p class="text-xs text-blue-600 mt-2 group-hover:underline flex items-center">
+                                                <i class="fas fa-shopping-cart mr-1"></i> Ajukan Pembelian
+                                            </p>
+                                            <p class="text-xs text-gray-400 mt-1">
+                                                {{ $notif->created_at->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </a>
                             @empty
-                                <div class="p-3 text-gray-500 text-center text-sm">Tidak ada notifikasi</div>
+                                <div class="p-8 text-center text-gray-400">
+                                    <i class="fas fa-check-circle text-3xl mb-2 text-green-500"></i>
+                                    <p class="text-sm font-medium">Semua stok aman!</p>
+                                    <p class="text-xs mt-1">Tidak ada notifikasi kritis</p>
+                                </div>
                             @endforelse
                         </div>
+
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <div class="bg-gray-50 p-3 border-t">
+                                <button onclick="markAllAsRead()"
+                                    class="w-full text-center text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                    <i class="fas fa-check-double mr-1"></i> Tandai semua sudah dibaca
+                                </button>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -294,6 +339,46 @@
     @endauth
 
     @livewireScripts
+
+    <script>
+        function markAllAsRead() {
+            fetch('{{ route("notifications.markAllRead") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page untuk update notifikasi
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Echo !== 'undefined') {
+                Echo.channel('notifications')
+                    .listen('SparepartCriticalBroadcasted', (e) => {
+                        const notifBell = document.querySelector('.fa-bell');
+                        const notifCount = document.querySelector('.absolute.bg-red-600');
+                        let count = parseInt(notifCount?.textContent || 0);
+                        notifCount ? notifCount.textContent = count + 1 : null;
+
+                        // Optional: tampilkan toast sederhana
+                        const toast = document.createElement('div');
+                        toast.textContent = e.message;
+                        toast.className =
+                            "fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded shadow";
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 4000);
+                    });
+            }
+        });
+    </script>
 </body>
 
 </html>
