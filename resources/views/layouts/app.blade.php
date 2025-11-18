@@ -165,55 +165,116 @@
                     <div x-show="open" x-transition @click.away="open = false"
                         class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
                         <div class="bg-gradient-to-r from-red-50 to-pink-50 p-3 border-b">
-                            <h3 class="font-bold text-sm text-red-800">Notifikasi Kritis</h3>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
-                                <p class="text-xs text-red-600 mt-1">{{ auth()->user()->unreadNotifications->count() }} sparepart perlu perhatian</p>
+                            <h3 class="font-bold text-sm text-red-800">Notifikasi Sistem</h3>
+                            @if (auth()->user()->unreadNotifications->count() > 0)
+                                <p class="text-xs text-red-600 mt-1">{{ auth()->user()->unreadNotifications->count() }}
+                                    notifikasi belum dibaca</p>
                             @endif
                         </div>
                         <div class="max-h-96 overflow-y-auto">
                             @php
-                                // Urutkan notifikasi berdasarkan sparepart_id secara ASC (terlama dulu)
-                                $sortedNotifications = auth()->user()->unreadNotifications
-                                    ->sortBy(function($notif) {
+                                // Pisahkan notifikasi berdasarkan type
+                                $criticalNotifications = auth()
+                                    ->user()
+                                    ->unreadNotifications->filter(function ($notif) {
+                                        return !isset($notif->data['type']) ||
+                                            $notif->data['type'] !== 'pending_purchase_request';
+                                    })
+                                    ->sortBy(function ($notif) {
                                         return $notif->data['sparepart_id'] ?? 0;
                                     });
+
+                                $prNotifications = auth()
+                                    ->user()
+                                    ->unreadNotifications->filter(function ($notif) {
+                                        return isset($notif->data['type']) &&
+                                            $notif->data['type'] === 'pending_purchase_request';
+                                    })
+                                    ->sortByDesc('created_at');
                             @endphp
 
-                            @forelse($sortedNotifications as $notif)
-                                <a href="{{ $notif->data['action_url'] ?? '#' }}"
-                                    class="block p-4 hover:bg-gray-50 transition-all border-b last:border-0 group">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-2 h-2 bg-red-600 rounded-full mt-1.5 animate-pulse"></div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between items-start">
-                                                <p class="font-semibold text-sm text-gray-900">{{ $notif->data['nama_part'] }}</p>
-                                                <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                                                    #{{ $notif->data['sparepart_id'] ?? 'N/A' }}
-                                                </span>
+                            <!-- Notifikasi Stok Kritis -->
+                            @if ($criticalNotifications->count() > 0)
+                                <div class="bg-red-50 p-2 border-b">
+                                    <p class="text-xs font-semibold text-red-700">Stok Kritis</p>
+                                </div>
+                                @foreach ($criticalNotifications as $notif)
+                                    <a href="{{ $notif->data['action_url'] ?? '#' }}"
+                                        class="block p-4 hover:bg-gray-50 transition-all border-b group">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-2 h-2 bg-red-600 rounded-full mt-1.5 animate-pulse"></div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start">
+                                                    <p class="font-semibold text-sm text-gray-900">
+                                                        {{ $notif->data['nama_part'] }}</p>
+                                                    <span
+                                                        class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">#{{ $notif->data['sparepart_id'] ?? 'N/A' }}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    Stok: <span
+                                                        class="font-bold text-red-600">{{ $notif->data['jumlah_baru'] }}</span>
+                                                    ≤ Titik: <span
+                                                        class="font-bold">{{ $notif->data['titik_pesanan'] }}</span>
+                                                </p>
+                                                <p
+                                                    class="text-xs text-blue-600 mt-2 group-hover:underline flex items-center">
+                                                    <i class="fas fa-shopping-cart mr-1"></i> Ajukan Pembelian
+                                                </p>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    {{ $notif->created_at->diffForHumans() }}
+                                                </p>
                                             </div>
-                                            <p class="text-xs text-gray-600 mt-1">
-                                                Stok: <span class="font-bold text-red-600">{{ $notif->data['jumlah_baru'] }}</span>
-                                                ≤ Titik: <span class="font-bold">{{ $notif->data['titik_pesanan'] }}</span>
-                                            </p>
-                                            <p class="text-xs text-blue-600 mt-2 group-hover:underline flex items-center">
-                                                <i class="fas fa-shopping-cart mr-1"></i> Ajukan Pembelian
-                                            </p>
-                                            <p class="text-xs text-gray-400 mt-1">
-                                                {{ $notif->created_at->diffForHumans() }}
-                                            </p>
                                         </div>
-                                    </div>
-                                </a>
-                            @empty
+                                    </a>
+                                @endforeach
+                            @endif
+
+                            <!-- Notifikasi Purchase Request -->
+                            @if ($prNotifications->count() > 0)
+                                <div class="bg-blue-50 p-2 border-b">
+                                    <p class="text-xs font-semibold text-blue-700">Purchase Request</p>
+                                </div>
+                                @foreach ($prNotifications as $notif)
+                                    <a href="{{ $notif->data['action_url'] ?? '#' }}"
+                                        class="block p-4 hover:bg-gray-50 transition-all border-b group">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start">
+                                                    <p class="font-semibold text-sm text-gray-900">
+                                                        {{ $notif->data['nama_part'] }}</p>
+                                                    <span
+                                                        class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">PR</span>
+                                                </div>
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    Qty: <span class="font-bold">{{ $notif->data['quantity'] }}</span>
+                                                    {{ $notif->data['satuan'] }}
+                                                    • Oleh: <span
+                                                        class="font-medium">{{ $notif->data['created_by'] ?? 'Unknown' }}</span>
+                                                </p>
+                                                <p
+                                                    class="text-xs text-blue-600 mt-2 group-hover:underline flex items-center">
+                                                    <i class="fas fa-eye mr-1"></i> Review Purchase Request
+                                                </p>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    {{ \Carbon\Carbon::parse($notif->data['created_at'] ?? $notif->created_at)->diffForHumans() }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            @endif
+
+                            @if (auth()->user()->unreadNotifications->count() === 0)
                                 <div class="p-8 text-center text-gray-400">
                                     <i class="fas fa-check-circle text-3xl mb-2 text-green-500"></i>
-                                    <p class="text-sm font-medium">Semua stok aman!</p>
-                                    <p class="text-xs mt-1">Tidak ada notifikasi kritis</p>
+                                    <p class="text-sm font-medium">Tidak ada notifikasi</p>
+                                    <p class="text-xs mt-1">Semua sudah ditangani</p>
                                 </div>
-                            @endforelse
+                            @endif
                         </div>
 
-                        @if(auth()->user()->unreadNotifications->count() > 0)
+                        @if (auth()->user()->unreadNotifications->count() > 0)
                             <div class="bg-gray-50 p-3 border-t">
                                 <button onclick="markAllAsRead()"
                                     class="w-full text-center text-xs text-blue-600 hover:text-blue-800 font-medium">
@@ -244,7 +305,8 @@
                             class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf
+                        </form>
                     </div>
                 </div>
             </div>
@@ -342,21 +404,21 @@
 
     <script>
         function markAllAsRead() {
-            fetch('{{ route("notifications.markAllRead") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Reload page untuk update notifikasi
-                    location.reload();
-                }
-            })
-            .catch(error => console.error('Error:', error));
+            fetch('{{ route('notifications.markAllRead') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page untuk update notifikasi
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         document.addEventListener('DOMContentLoaded', function() {

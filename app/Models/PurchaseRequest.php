@@ -27,6 +27,7 @@ class PurchaseRequest extends Model
         'pic',
         'quotation_lead_time',
         'status',
+        'last_notified_at',
         'sparepart_id'
     ];
 
