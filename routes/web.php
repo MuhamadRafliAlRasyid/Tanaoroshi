@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Volt\Volt;
+use Illuminate\Support\Facades\Route;
 use App\Exports\PengambilanExport;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -79,7 +80,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
         Route::get('/pdf/{hashid}', [SparepartController::class, 'downloadPdf'])->name('pdf');
         Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('checkstock');
-        Route::get('/qr', [SparepartController::class, 'regenerateAllQrCodes'])->name('regenerateAllQrCodes');
+        Route::get('/qr', [SparepartController::class, 'generateAllQrCodes']);
         Route::get('/trashed', [SparepartController::class, 'trashed'])->name('trashed');
 
         // Hashid based routes

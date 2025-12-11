@@ -14,12 +14,27 @@ use Illuminate\Support\Facades\Auth;
 
 class PengambilanSparepartController extends Controller
 {
+    /* -------------------------------------------------------------------------- */
+    /*                              HASHID RESOLVER                               */
+    /* -------------------------------------------------------------------------- */
+
     protected function resolveHashid($hashid)
     {
         $id = app(HashIdService::class)->decode($hashid);
         if (!$id) abort(404);
-        return PengambilanSparepart::findOrFail($id);
+        return $id;
     }
+
+    protected function resolveSparepartHash($hashid)
+    {
+        $id = app(HashIdService::class)->decode($hashid);
+        if (!$id) abort(404);
+        return $id;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                    INDEX                                   */
+    /* -------------------------------------------------------------------------- */
 
     public function index(Request $request)
     {
@@ -56,28 +71,37 @@ class PengambilanSparepartController extends Controller
         return view('pengambilan.index', compact('pengambilanSpareparts'));
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                                   CREATE                                   */
+    /* -------------------------------------------------------------------------- */
+
     public function create()
-{
-    $users = User::all();
-    $bagians = Bagian::all();
-    $spareparts = Spareparts::all();
+    {
+        $users = User::all();
+        $bagians = Bagian::all();
+        $spareparts = Spareparts::all();
 
-    if (Auth::user()->role !== 'admin') {
-        $users = User::where('id', Auth::user()->id)->get();
-        $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect();
+        if (Auth::user()->role !== 'admin') {
+            $users = User::where('id', Auth::user()->id)->get();
+            $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect();
+        }
+
+        $qrSparepartHashid = request()->query('spareparts_id');
+
+        if ($qrSparepartHashid) {
+            $decodedId = $this->resolveSparepartHash($qrSparepartHashid);
+            $sparepart = Spareparts::where('id', $decodedId)->first();
+            $spareparts = $sparepart ? collect([$sparepart]) : Spareparts::all();
+        } else {
+            $qrSparepartHashid = null;
+        }
+
+        return view('pengambilan.create', compact('users', 'bagians', 'spareparts', 'qrSparepartHashid'));
     }
 
-    $qrSparepartHashid = request()->query('spareparts_id');
-
-    if ($qrSparepartHashid) {
-        $sparepart = Spareparts::where('id', $qrSparepartHashid)->first();
-        $spareparts = $sparepart ? collect([$sparepart]) : Spareparts::all();
-    } else {
-        $qrSparepartHashid = null;
-    }
-
-    return view('pengambilan.create', compact('users', 'bagians', 'spareparts', 'qrSparepartHashid'));
-}
+    /* -------------------------------------------------------------------------- */
+    /*                                    STORE                                   */
+    /* -------------------------------------------------------------------------- */
 
     public function store(Request $request)
     {
@@ -85,6 +109,7 @@ class PengambilanSparepartController extends Controller
             $request->merge([
                 'user_id' => Auth::user()->id,
                 'bagian_id' => Auth::user()->bagian_id ?? 1,
+                'spareparts_id' => $request->spareparts_id,
             ]);
         }
 
@@ -101,186 +126,207 @@ class PengambilanSparepartController extends Controller
                 'waktu_pengambilan' => 'required|date',
             ]);
 
-            $sparepartId = decode_id($request->spareparts_id, Spareparts::class);
-            if (!$sparepartId) abort(404);
-
+            $sparepartId = $this->resolveSparepartHash($request->spareparts_id);
             $sparepart = Spareparts::findOrFail($sparepartId);
+
             $jumlah = $request->jumlah;
 
-            Log::info('Current Stock - Baru: ' . $sparepart->jumlah_baru . ', Bekas: ' . $sparepart->jumlah_bekas);
-
             if ($request->part_type === 'baru') {
-                $currentStock = $sparepart->jumlah_baru;
-                if ($currentStock < $jumlah) {
-                    Log::warning('Stock insuficient for sparepart ID ' . $sparepart->id . ': Required ' . $jumlah . ', Available ' . $currentStock);
-                    return redirect()->back()->with('error', 'Stok baru tidak mencukupi. Stok tersedia: ' . $currentStock);
+                if ($sparepart->jumlah_baru < $jumlah) {
+                    return back()->with('error', 'Stok baru tidak mencukupi.');
                 }
-                $sparepart->update(['jumlah_baru' => $currentStock - $jumlah]);
+                $sparepart->decrement('jumlah_baru', $jumlah);
             } elseif ($request->part_type === 'bekas') {
-                $currentStock = $sparepart->jumlah_bekas;
-                if ($currentStock < $jumlah) {
-                    Log::warning('Stock insuficient for sparepart ID ' . $sparepart->id . ': Required ' . $jumlah . ', Available ' . $currentStock);
-                    return redirect()->back()->with('error', 'Stok bekas tidak mencukupi. Stok tersedia: ' . $currentStock);
+                if ($sparepart->jumlah_bekas < $jumlah) {
+                    return back()->with('error', 'Stok bekas tidak mencukupi.');
                 }
-                $sparepart->update(['jumlah_bekas' => $currentStock - $jumlah]);
+                $sparepart->decrement('jumlah_bekas', $jumlah);
             }
 
             $validated['spareparts_id'] = $sparepartId;
-            $pengambilanSparepart = PengambilanSparepart::create($validated);
-            Log::info('Stored Pengambilan Sparepart: ', $pengambilanSparepart->toArray());
 
-            return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
+            $pengambilanSparepart = PengambilanSparepart::create($validated);
+
+            return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)
+                ->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error di store PengambilanSparepart: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all(),
             ]);
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                     SHOW                                   */
+    /* -------------------------------------------------------------------------- */
 
     public function show($hashid)
     {
-        $pengambilanSparepart = $this->resolveHashid($hashid);
+        $pengambilanSparepart = PengambilanSparepart::findOrFail(
+            $this->resolveHashid($hashid)
+        );
+
         $pengambilanSparepart->load(['user', 'bagian', 'sparepart']);
 
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
-            abort(403, 'Anda tidak memiliki izin untuk melihat detail ini.');
+            abort(403);
         }
+
         return view('pengambilan.show', compact('pengambilanSparepart'));
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                  EXPORT PDF                                */
+    /* -------------------------------------------------------------------------- */
 
     public function exportPdf($hashid = null)
     {
         if ($hashid) {
-            $pengambilanSparepart = $this->resolveHashid($hashid);
-            $pengambilanSparepart->load(['user', 'sparepart']);
+            $decodedId = $this->resolveHashid($hashid);
+            $pengambilanSparepart = PengambilanSparepart::with(['user', 'sparepart'])
+                ->findOrFail($decodedId);
+
             $pengambilanSpareparts = collect([$pengambilanSparepart]);
         } else {
             $pengambilanSpareparts = PengambilanSparepart::with(['user', 'sparepart'])->get();
         }
 
-        $pdf = Pdf::loadView('pengambilan.export-pdf', compact('pengambilanSpareparts'));
-        $pdf->setPaper('a4', 'portrait');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => true,
-            'defaultFont' => 'DejaVu Sans',
-        ]);
+        $pdf = Pdf::loadView('pengambilan.export-pdf', compact('pengambilanSpareparts'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'DejaVu Sans',
+            ]);
 
-        return $pdf->download('pengambilan_report_' . ($hashid ? 'hashid_' . $hashid : 'all') . '.pdf');
+        return $pdf->download('pengambilan_report_' . ($hashid ? $hashid : 'all') . '.pdf');
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                     EDIT                                   */
+    /* -------------------------------------------------------------------------- */
 
     public function edit($hashid)
-{
-    $pengambilanSparepart = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])
-        ->findByHashidOrFail($hashid);
+    {
+        $decodedId = $this->resolveHashid($hashid);
 
-    if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
-        abort(403);
+        $pengambilanSparepart = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])
+            ->findOrFail($decodedId);
+
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403);
+        }
+
+        $users = User::all();
+        $bagians = Bagian::all();
+        $spareparts = Spareparts::all();
+
+        if (Auth::user()->role !== 'admin') {
+            $users = User::where('id', Auth::user()->id)->get();
+            $bagians = Auth::user()->bagian
+                ? Bagian::where('id', Auth::user()->bagian->id)->get()
+                : collect();
+        }
+
+        return view('pengambilan.edit', compact(
+            'pengambilanSparepart', 'users', 'bagians', 'spareparts'
+        ));
     }
 
-    $users = User::all();
-    $bagians = Bagian::all();
-    $spareparts = Spareparts::all();
-
-    if (Auth::user()->role !== 'admin') {
-        $users = User::where('id', Auth::user()->id)->get();
-        $bagians = Auth::user()->bagian ? Bagian::where('id', Auth::user()->bagian->id)->get() : collect();
-    }
-
-    return view('pengambilan.edit', compact(
-        'pengambilanSparepart', 'users', 'bagians', 'spareparts'
-    ));
-}
+    /* -------------------------------------------------------------------------- */
+    /*                                    UPDATE                                  */
+    /* -------------------------------------------------------------------------- */
 
     public function update(Request $request, $hashid)
-{
-    $pengambilanSparepart = PengambilanSparepart::findByHashidOrFail($hashid);
+    {
+        $decodedId = $this->resolveHashid($hashid);
 
-    if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
-        abort(403);
-    }
+        $pengambilanSparepart = PengambilanSparepart::findOrFail($decodedId);
 
-    if (Auth::user()->role !== 'admin') {
-        $request->merge([
-            'user_id' => $pengambilanSparepart->user_id,
-            'bagian_id' => $pengambilanSparepart->bagian_id,
+        if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
+            abort(403);
+        }
+
+        if (Auth::user()->role !== 'admin') {
+            $request->merge([
+                'user_id' => $pengambilanSparepart->user_id,
+                'bagian_id' => $pengambilanSparepart->bagian_id,
+            ]);
+        }
+
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'bagian_id' => 'required|exists:bagian,id',
+            'spareparts_id' => 'required',
+            'part_type' => 'required|in:baru,bekas',
+            'jumlah' => 'required|integer|min:1',
+            'satuan' => 'required|string|max:50',
+            'keperluan' => 'required|string|max:255',
+            'waktu_pengambilan' => 'required|date',
         ]);
-    }
 
-    $validated = $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'bagian_id' => 'required|exists:bagian,id',
-        'spareparts_id' => 'required',
-        'part_type' => 'required|in:baru,bekas',
-        'jumlah' => 'required|integer|min:1',
-        'satuan' => 'required|string|max:50',
-        'keperluan' => 'required|string|max:255',
-        'waktu_pengambilan' => 'required|date',
-    ]);
+        $sparepartId = $this->resolveSparepartHash($request->spareparts_id);
 
-    $sparepartId = decode_id($request->spareparts_id, Spareparts::class);
-    if (!$sparepartId) abort(404);
+        $sparepart = Spareparts::findOrFail($sparepartId);
 
-    $sparepart = Spareparts::findOrFail($sparepartId);
-    $newJumlah = $request->jumlah;
-    $oldJumlah = $pengambilanSparepart->jumlah;
-    $partType = $request->part_type;
+        $oldJumlah = $pengambilanSparepart->jumlah;
+        $newJumlah = $request->jumlah;
 
-    // Kembalikan stok lama
-    if ($pengambilanSparepart->part_type === 'baru') {
-        $sparepart->increment('jumlah_baru', $oldJumlah);
-    } elseif ($pengambilanSparepart->part_type === 'bekas') {
-        $sparepart->increment('jumlah_bekas', $oldJumlah);
-    }
-
-    // Kurangi stok baru
-    if ($partType === 'baru') {
-        if ($sparepart->jumlah_baru < $newJumlah) {
-            return back()->with('error', 'Stok baru tidak cukup.');
+        if ($pengambilanSparepart->part_type === 'baru') {
+            $sparepart->increment('jumlah_baru', $oldJumlah);
+        } else {
+            $sparepart->increment('jumlah_bekas', $oldJumlah);
         }
-        $sparepart->decrement('jumlah_baru', $newJumlah);
-    } elseif ($partType === 'bekas') {
-        if ($sparepart->jumlah_bekas < $newJumlah) {
-            return back()->with('error', 'Stok bekas tidak cukup.');
+
+        if ($request->part_type === 'baru') {
+            if ($sparepart->jumlah_baru < $newJumlah) {
+                return back()->with('error', 'Stok baru tidak cukup.');
+            }
+            $sparepart->decrement('jumlah_baru', $newJumlah);
+        } else {
+            if ($sparepart->jumlah_bekas < $newJumlah) {
+                return back()->with('error', 'Stok bekas tidak cukup.');
+            }
+            $sparepart->decrement('jumlah_bekas', $newJumlah);
         }
-        $sparepart->decrement('jumlah_bekas', $newJumlah);
+
+        $validated['spareparts_id'] = $sparepartId;
+
+        $pengambilanSparepart->update($validated);
+
+        return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)
+            ->with('success', 'Berhasil diperbarui.');
     }
 
-    $validated['spareparts_id'] = $sparepartId;
-    $pengambilanSparepart->update($validated);
-
-    return redirect()
-        ->route('pengambilan.show', $pengambilanSparepart->hashid)
-        ->with('success', 'Berhasil diperbarui.');
-}
+    /* -------------------------------------------------------------------------- */
+    /*                                   DESTROY                                  */
+    /* -------------------------------------------------------------------------- */
 
     public function destroy($hashid)
     {
-        $pengambilanSparepart = PengambilanSparepart::findByHashidOrFail($hashid);
+        $decodedId = $this->resolveHashid($hashid);
 
-        if (!$pengambilanSparepart || !$pengambilanSparepart->exists) {
-            Log::error('Destroy: Pengambilan Sparepart tidak ditemukan untuk HashID: ' . $hashid);
-            abort(404, 'Pengambilan Sparepart tidak ditemukan.');
-        }
+        $pengambilanSparepart = PengambilanSparepart::findOrFail($decodedId);
+
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
-            abort(403, 'Anda tidak memiliki izin untuk menghapus data ini.');
+            abort(403);
         }
 
         $sparepart = $pengambilanSparepart->sparepart;
         $jumlah = $pengambilanSparepart->jumlah;
+
         if ($pengambilanSparepart->part_type === 'baru') {
-            $currentStock = $sparepart->jumlah_baru + $jumlah;
-            $sparepart->update(['jumlah_baru' => $currentStock]);
-        } elseif ($pengambilanSparepart->part_type === 'bekas') {
-            $currentStock = $sparepart->jumlah_bekas + $jumlah;
-            $sparepart->update(['jumlah_bekas' => $currentStock]);
+            $sparepart->increment('jumlah_baru', $jumlah);
+        } else {
+            $sparepart->increment('jumlah_bekas', $jumlah);
         }
 
         $pengambilanSparepart->delete();
-        Log::info('Destroyed Pengambilan Sparepart HashID: ', ['hashid' => $hashid]);
 
-        return redirect()->route('pengambilan.index')->with('success', 'Pengambilan sparepart berhasil dihapus.');
+        return redirect()->route('pengambilan.index')
+            ->with('success', 'Pengambilan sparepart berhasil dihapus.');
     }
 }
+
