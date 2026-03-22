@@ -17,7 +17,7 @@
         "hashids/hashids": "^5.0",
         "laravel/framework": "^12.0",
         "laravel/jetstream": "^5.3",
-        "laravel/sanctum": "^4.0",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "livewire/flux": "^2.1.1",

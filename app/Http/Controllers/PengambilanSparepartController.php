@@ -112,9 +112,7 @@ class PengambilanSparepartController extends Controller
                 'spareparts_id' => $request->spareparts_id,
             ]);
         }
-
         Log::info('Store Request: ', $request->all());
-
         try {
             $validated = $request->validate([
                 'user_id' => 'required|exists:users,id',
@@ -125,12 +123,9 @@ class PengambilanSparepartController extends Controller
                 'keperluan' => 'required|string|max:255',
                 'waktu_pengambilan' => 'required|date',
             ]);
-
             $sparepartId = $this->resolveSparepartHash($request->spareparts_id);
             $sparepart = Spareparts::findOrFail($sparepartId);
-
             $jumlah = $request->jumlah;
-
             if ($request->part_type === 'baru') {
                 if ($sparepart->jumlah_baru < $jumlah) {
                     return back()->with('error', 'Stok baru tidak mencukupi.');
@@ -144,9 +139,7 @@ class PengambilanSparepartController extends Controller
             }
 
             $validated['spareparts_id'] = $sparepartId;
-
             $pengambilanSparepart = PengambilanSparepart::create($validated);
-
             return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)
                 ->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
         } catch (\Exception $e) {
@@ -192,7 +185,6 @@ class PengambilanSparepartController extends Controller
         } else {
             $pengambilanSpareparts = PengambilanSparepart::with(['user', 'sparepart'])->get();
         }
-
         $pdf = Pdf::loadView('pengambilan.export-pdf', compact('pengambilanSpareparts'))
             ->setPaper('a4', 'portrait')
             ->setOptions([
@@ -200,7 +192,6 @@ class PengambilanSparepartController extends Controller
                 'isRemoteEnabled' => true,
                 'defaultFont' => 'DejaVu Sans',
             ]);
-
         return $pdf->download('pengambilan_report_' . ($hashid ? $hashid : 'all') . '.pdf');
     }
 
@@ -242,20 +233,16 @@ class PengambilanSparepartController extends Controller
     public function update(Request $request, $hashid)
     {
         $decodedId = $this->resolveHashid($hashid);
-
         $pengambilanSparepart = PengambilanSparepart::findOrFail($decodedId);
-
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
             abort(403);
         }
-
         if (Auth::user()->role !== 'admin') {
             $request->merge([
                 'user_id' => $pengambilanSparepart->user_id,
                 'bagian_id' => $pengambilanSparepart->bagian_id,
             ]);
         }
-
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'bagian_id' => 'required|exists:bagian,id',
@@ -266,20 +253,15 @@ class PengambilanSparepartController extends Controller
             'keperluan' => 'required|string|max:255',
             'waktu_pengambilan' => 'required|date',
         ]);
-
         $sparepartId = $this->resolveSparepartHash($request->spareparts_id);
-
         $sparepart = Spareparts::findOrFail($sparepartId);
-
         $oldJumlah = $pengambilanSparepart->jumlah;
         $newJumlah = $request->jumlah;
-
         if ($pengambilanSparepart->part_type === 'baru') {
             $sparepart->increment('jumlah_baru', $oldJumlah);
         } else {
             $sparepart->increment('jumlah_bekas', $oldJumlah);
         }
-
         if ($request->part_type === 'baru') {
             if ($sparepart->jumlah_baru < $newJumlah) {
                 return back()->with('error', 'Stok baru tidak cukup.');
@@ -291,11 +273,8 @@ class PengambilanSparepartController extends Controller
             }
             $sparepart->decrement('jumlah_bekas', $newJumlah);
         }
-
         $validated['spareparts_id'] = $sparepartId;
-
         $pengambilanSparepart->update($validated);
-
         return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)
             ->with('success', 'Berhasil diperbarui.');
     }

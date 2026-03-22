@@ -43,9 +43,6 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequests = $query->paginate(10)->withQueryString();
 
-        // Pindahkan checkPendingRequests ke method store saja, tidak perlu di index
-        // $this->checkPendingRequests();
-
         return view('purchase_requests.index', compact('purchaseRequests'));
     }
 
@@ -97,10 +94,8 @@ class PurchaseRequestController extends Controller
             'quotation_lead_time' => 'nullable|string|max:255',
             'sparepart_id' => 'nullable|string',
         ]);
-
         $validated['user_id'] = Auth::id();
         $validated['status'] = 'PR';
-
         // Decode dan simpan sparepart_id
         $sparepartId = null;
         if ($request->has('sparepart_id') && !empty($request->sparepart_id)) {
@@ -109,7 +104,6 @@ class PurchaseRequestController extends Controller
                 $validated['sparepart_id'] = $sparepartId;
             }
         }
-
         // Create purchase request
         $purchaseRequest = PurchaseRequest::create($validated);
         Log::info('Purchase Request created with ID: ' . $purchaseRequest->id . ', HashID: ' . $purchaseRequest->hashid);
@@ -377,16 +371,5 @@ class PurchaseRequestController extends Controller
         }
     }
 
-    // Method untuk testing notifikasi manual
-    public function testNotification($hashid)
-    {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
 
-        $purchaseRequest = $this->resolveHashid($hashid);
-        $this->notifySuperUsers($purchaseRequest);
-
-        return redirect()->back()->with('success', 'Test notification sent! Check logs for details.');
-    }
 }

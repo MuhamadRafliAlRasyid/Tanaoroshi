@@ -96,19 +96,6 @@
                                 <td class="px-4 py-3 {{ $item->status === 'PO' ? 'text-green-600' : 'text-yellow-600' }}">
                                     {{ $item->status }}
                                 </td>
-                                {{-- <td class="px-4 py-3">
-                                    @php
-                                        $latestLog = $item->logs()->latest()->first();
-                                        $approvalStatus =
-                                            $latestLog && $latestLog->action === 'approved'
-                                                ? 'Approved by ' .
-                                                    ($latestLog->approvedBy->name ?? 'Unknown') .
-                                                    ' on ' .
-                                                    $latestLog->created_at->format('d-M-Y H:i')
-                                                : 'Pending';
-                                    @endphp
-                                    <span class="truncate max-w-xs block">{{ $approvalStatus }}</span>
-                                </td> --}}
                                 <td class="px-4 py-3 text-center flex justify-center space-x-2">
                                     <a href="{{ route('purchase_requests.show', $item->hashid) }}"
                                         class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition-all duration-200 transform hover:scale-105 relative group"

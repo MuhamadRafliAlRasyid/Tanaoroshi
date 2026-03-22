@@ -23,7 +23,7 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
     use Notifiable;
-    use HasHashid;
+    use HasHashId;
 
     /**
      * The attributes that are mass assignable.

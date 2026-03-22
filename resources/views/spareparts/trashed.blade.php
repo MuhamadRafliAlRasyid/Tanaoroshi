@@ -46,12 +46,18 @@
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->jumlah_baru }}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="{{ route('spareparts.restore', $sparepart->hashid) }}"
-                                        class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200 transform hover:scale-105 relative group"
-                                        title="Kembalikan Sparepart"
-                                        onclick="return confirm('Yakin ingin mengembalikan sparepart ini?')">
-                                        <i class="fas fa-undo mr-1"></i> Kembalikan
-                                    </a>
+                                    <form action="{{ route('spareparts.restore', $sparepart->hashid) }}" method="POST"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Yakin ingin mengembalikan sparepart ini?')">
+
+                                        @csrf
+
+                                        <button type="submit"
+                                            class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200 transform hover:scale-105"
+                                            title="Kembalikan Sparepart">
+                                            <i class="fas fa-undo mr-1"></i> Kembalikan
+                                        </button>
+                                    </form>
                                     <form action="{{ route('spareparts.forceDelete', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;"
                                         onsubmit="return confirm('Yakin ingin menghapus permanen? Data tidak bisa dikembalikan!')">
