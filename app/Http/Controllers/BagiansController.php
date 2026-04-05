@@ -6,7 +6,7 @@ use App\Models\Bagian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class BagianController extends Controller
+class BagiansController extends Controller
 {
     public function index(Request $request)
     {

@@ -35,38 +35,43 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
-    // Spareparts
-    Route::prefix('spareparts')->group(function () {
-        Route::get('/', [SparepartController::class, 'index']);
-        Route::post('/', [SparepartController::class, 'store']);
-        Route::get('/{sparepart}', [SparepartController::class, 'show']);
-        Route::put('/{sparepart}', [SparepartController::class, 'update']);
-        Route::delete('/{sparepart}', [SparepartController::class, 'destroy']);
+ // Spareparts
+Route::prefix('spareparts')->name('spareparts.')->group(function () {
+    Route::get('/', [SparepartController::class, 'index'])->name('index');
+    Route::get('/trashed', [SparepartController::class, 'trashed'])->name('trashed');
+    Route::post('/{hashid}/restore', [SparepartController::class, 'restore'])->name('restore');
+    Route::delete('/{hashid}/force-delete', [SparepartController::class, 'forceDelete'])->name('force-delete');
+    Route::post('/', [SparepartController::class, 'store'])->name('store');
+    Route::get('/{hashid}', [SparepartController::class, 'show'])->name('show');
+    Route::put('/{hashid}', [SparepartController::class, 'update'])->name('update');
+    Route::delete('/{hashid}', [SparepartController::class, 'destroy'])->name('destroy');
 
-        Route::get('/check-stock', [SparepartController::class, 'checkStock']);
-        Route::post('/{sparepart}/regenerate-qr', [SparepartController::class, 'regenerateQrCode']);
-        Route::get('/generate-all-qr', [SparepartController::class, 'generateAllQrCodes']);
-    });
 
+
+
+    Route::get('/check-stock', [SparepartController::class, 'checkStock']);
+    Route::post('/{sparepart}/regenerate-qr', [SparepartController::class, 'regenerateQrCode']);
+    Route::get('/generate-all-qr', [SparepartController::class, 'generateAllQrCodes']);
+});
     // Pengambilan Sparepart
-    Route::prefix('pengambilan')->group(function () {
+    Route::prefix('pengambilan')->name('pengambilan.')->group(function () {
         Route::get('/', [PengambilanSparepartController::class, 'index']);
         Route::post('/', [PengambilanSparepartController::class, 'store']);
-        Route::get('/{pengambilan}', [PengambilanSparepartController::class, 'show']);
-        Route::put('/{pengambilan}', [PengambilanSparepartController::class, 'update']);
+        Route::get('/{hashid}', [PengambilanSparepartController::class, 'show']);   // ← hashid
+        Route::put('/{hashid}', [PengambilanSparepartController::class, 'update'])->name('update');   //
         Route::delete('/{pengambilan}', [PengambilanSparepartController::class, 'destroy']);
     });
 
     // Purchase Request
-    Route::prefix('purchase-requests')->group(function () {
+    Route::prefix('purchase-requests')->name('purchase-requests.')->group(function () {
         Route::get('/', [PurchaseRequestController::class, 'index']);
         Route::post('/', [PurchaseRequestController::class, 'store']);
-        Route::get('/{purchaseRequest}', [PurchaseRequestController::class, 'show']);
+        Route::get('/{hashid}', [PurchaseRequestController::class, 'show']);   // ← hashid
         Route::put('/{purchaseRequest}', [PurchaseRequestController::class, 'update']);
         Route::delete('/{purchaseRequest}', [PurchaseRequestController::class, 'destroy']);
 
-        Route::post('/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve']);
-        Route::post('/{purchaseRequest}/reject', [PurchaseRequestController::class, 'reject']);
-        Route::post('/{purchaseRequest}/complete', [PurchaseRequestController::class, 'complete']);
+        Route::post('/{hashid}/approve', [PurchaseRequestController::class, 'approve']);
+        Route::post('/{hashid}/reject', [PurchaseRequestController::class, 'reject']);
+        Route::post('/{hashid}/complete', [PurchaseRequestController::class, 'complete']);
     });
 });

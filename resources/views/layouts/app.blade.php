@@ -313,67 +313,96 @@
         </header>
 
         <div class="flex pt-16 min-h-screen">
-            <!-- Sidebar -->
-            <aside class="sidebar bg-white border-r" :class="{ 'open': sidebarOpen }">
+            <!-- SIDEBAR -->
+            <aside class="sidebar bg-white border-r shadow-sm" :class="{ 'open': sidebarOpen }">
                 <div class="sidebar-scroll p-6">
-                    <div class="mb-8">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Dashboard</h2>
-                        <ul class="space-y-3 text-gray-700">
-                            @if (Auth::user()->role === 'user')
-                                <li><a href="{{ route('spareparts.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-box"></i> Sparepart</a></li>
-                                <li><a href="{{ route('pengambilan.create') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-hand-holding"></i> Permintaan</a></li>
-                                <li><a href="{{ route('pengambilan.exportpdf') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-print"></i> Laporan</a></li>
-                            @elseif (Auth::user()->role === 'admin')
-                                <li><a href="{{ route('spareparts.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-box"></i> Sparepart</a></li>
-                                <li><a href="{{ route('pengambilan.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-tasks"></i> Daftar Pengambilan</a></li>
-                                <li><a href="{{ route('admin.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-users"></i> Daftar User</a></li>
-                                <li><a href="{{ route('bagian.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-building"></i> Daftar Dept</a></li>
-                                <li><a href="{{ route('purchase_requests.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-shopping-cart"></i> Pengajuan Sparepart</a></li>
-                            @elseif (Auth::user()->role === 'super')
-                                <li><a href="{{ route('purchase_requests.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-check-circle"></i> Approve Pengajuan</a></li>
-                            @elseif (Auth::user()->role === 'karyawan')
-                                <li><a href="{{ route('pengambilan.index') }}"
-                                        class="text-base flex items-center gap-2 hover:text-blue-600 transition"><i
-                                            class="fas fa-tasks"></i> Daftar Pengambilan</a></li>
-                            @endif
-                        </ul>
+
+                    <!-- Logo + Title -->
+                    <div class="flex items-center gap-3 mb-10">
+                        <img src="{{ asset('images/logo.jpg') }}" alt="Logo" class="w-10 h-10 object-contain">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Tanaoroshi</h1>
+                            <p class="text-xs text-gray-500 -mt-1">Inventaris Sparepart</p>
+                        </div>
                     </div>
-                    <div class="border-t pt-6">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Tools</h2>
-                        <ul class="space-y-3">
-                            <li>
-                                <a href="{{ route('admin.edit', Auth::user()->hashid) }}"
-                                    class="text-base flex items-center gap-2 hover:text-blue-600 transition">
-                                    <i class="fas fa-user-cog"></i> Account & Security
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('logout') }}"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                                    class="text-base flex items-center gap-2 text-red-600 hover:text-red-800 transition">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+
+                    <!-- MENU -->
+                    <nav class="space-y-1">
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 px-3">Main Menu
+                        </div>
+
+                        @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super')
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                                <i class="fas fa-tachometer-alt w-5"></i>
+                                <span class="font-medium">Dashboard Admin</span>
+                            </a>
+                        @elseif (Auth::user()->role === 'karyawan')
+                            <a href="{{ route('karyawan.dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                                <i class="fas fa-tachometer-alt w-5"></i>
+                                <span class="font-medium">Dashboard</span>
+                            </a>
+                        @endif
+
+                        <!-- Sparepart -->
+                        <a href="{{ route('sparepart.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                            <i class="fas fa-boxes w-5"></i>
+                            <span class="font-medium">Sparepart</span>
+                        </a>
+
+                        <!-- Pengambilan -->
+                        <a href="{{ route('pengambilan.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                            <i class="fas fa-hand-holding w-5"></i>
+                            <span class="font-medium">Daftar Pengambilan</span>
+                        </a>
+
+                        <!-- Purchase Request -->
+                        <a href="{{ route('purchase_requests.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                            <i class="fas fa-shopping-cart w-5"></i>
+                            <span class="font-medium">Pengajuan Sparepart</span>
+                        </a>
+
+                        <!-- Bagian / Departemen -->
+                        <a href="{{ route('bagians.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                            <i class="fas fa-building w-5"></i>
+                            <span class="font-medium">Daftar Departemen</span>
+                        </a>
+
+                        <!-- User Management (hanya Admin & Super) -->
+                        @if (in_array(Auth::user()->role, ['admin', 'super']))
+                            <a href="{{ route('admin.index') }}"
+                                class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
+                                <i class="fas fa-users w-5"></i>
+                                <span class="font-medium">Manajemen User</span>
+                            </a>
+                        @endif
+                    </nav>
+
+                    <div class="border-t my-8"></div>
+
+                    <!-- Tools -->
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 px-3">Tools</div>
+                    <nav class="space-y-1">
+                        <a href="{{ route('admin.edit', Auth::user()->hashid ?? '') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-gray-100 text-gray-700 hover:text-gray-800 transition-all">
+                            <i class="fas fa-user-cog w-5"></i>
+                            <span class="font-medium">Account & Security</span>
+                        </a>
+
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-red-50 text-red-600 hover:text-red-700 transition-all">
+                                <i class="fas fa-sign-out-alt w-5"></i>
+                                <span class="font-medium">Logout</span>
+                            </button>
+                        </form>
+                    </nav>
                 </div>
             </aside>
 

@@ -6,7 +6,7 @@ use App\Models\Bagian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class BagianController extends Controller
 {

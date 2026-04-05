@@ -14,22 +14,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory;
-    use HasProfilePhoto;
-    use HasTeams;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
-    use Notifiable;
-    use HasHashId;
+    use HasApiTokens,HasFactory,HasProfilePhoto,HasTeams,Notifiable,TwoFactorAuthenticatable,Notifiable,HasHashId;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
+
     protected $fillable = [
         'name',
         'email',
@@ -66,6 +58,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
+        'hashid',
     ];
 
     /**

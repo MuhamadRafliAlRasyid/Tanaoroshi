@@ -18,7 +18,7 @@
 
             <!-- Tombol Kembali -->
             <div class="mb-4 text-left">
-                <a href="{{ route('spareparts.index') }}"
+                <a href="{{ route('sparepart.index') }}"
                     class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
@@ -46,7 +46,7 @@
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->jumlah_baru }}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <form action="{{ route('spareparts.restore', $sparepart->hashid) }}" method="POST"
+                                    <form action="{{ route('sparepart.restore', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;"
                                         onsubmit="return confirm('Yakin ingin mengembalikan sparepart ini?')">
 
@@ -58,7 +58,7 @@
                                             <i class="fas fa-undo mr-1"></i> Kembalikan
                                         </button>
                                     </form>
-                                    <form action="{{ route('spareparts.forceDelete', $sparepart->hashid) }}" method="POST"
+                                    <form action="{{ route('sparepart.forceDelete', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;"
                                         onsubmit="return confirm('Yakin ingin menghapus permanen? Data tidak bisa dikembalikan!')">
                                         @csrf

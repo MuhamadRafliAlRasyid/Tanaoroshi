@@ -6,9 +6,9 @@ use App\Exports\PengambilanExport;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\BagianController;
+use App\Http\Controllers\BagiansController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\SparepartController;
+use App\Http\Controllers\SparepartsController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\SuperDashboardController;
 use App\Http\Controllers\PurchaseRequestController;
@@ -41,12 +41,12 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Public Utility Routes
-Route::get('/spareparts/sync-from-sheets', [SparepartController::class, 'syncFromSheets'])->name('sync-from-sheets');
-Route::get('/spareparts/sync-to-sheets', [SparepartController::class, 'syncAllToSheets'])->name('sync-to-sheets');
-Route::get('/google/callback', [SparepartController::class, 'handleGoogleCallback'])->name('handleGoogleCallback');
-Route::get('/generate-all-qr', [SparepartController::class, 'generateAllQrCodes'])
+Route::get('/spareparts/sync-from-sheets', [SparepartsController::class, 'syncFromSheets'])->name('sync-from-sheets');
+Route::get('/spareparts/sync-to-sheets', [SparepartsController::class, 'syncAllToSheets'])->name('sync-to-sheets');
+Route::get('/google/callback', [SparepartsController::class, 'handleGoogleCallback'])->name('handleGoogleCallback');
+Route::get('/generate-all-qr', [SparepartsController::class, 'generateAllQrCodes'])
     ->name('spareparts.generateAllQrCodes');
-Route::get('/v2qr', [SparepartController::class, 'generateQrCode'])->name('spareparts.generateQrCode');
+Route::get('/v2qr', [SparepartsController::class, 'generateQrCode'])->name('spareparts.generateQrCode');
 Route::get('/pengambilan/export/{id?}', function ($id = null) {
     return Excel::download(new PengambilanExport($id), 'pengambilan_' . ($id ? 'id_' . $id : 'all') . '.xlsx');
 })->name('pengambilan.export');
@@ -55,8 +55,8 @@ Route::post('/purchase-requests/{hashid}/complete', [PurchaseRequestController::
     ->middleware('auth');
 // Encrypted Redirect Routes
 Route::prefix('redirect')->name('redirect.')->group(function () {
-    Route::get('/sparepart/{encryptedId}', [SparepartController::class, 'redirectDecrypt'])->name('sparepart');
-    Route::get('/generate/{id}', [SparepartController::class, 'generateEncryptedLink'])->name('generate');
+    Route::get('/sparepart/{encryptedId}', [SparepartsController::class, 'redirectDecrypt'])->name('sparepart');
+    Route::get('/generate/{id}', [SparepartsController::class, 'generateEncryptedLink'])->name('generate');
 });
 
 // Protected Routes with Auth Middleware
@@ -73,24 +73,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/karyawan/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
 
     // Sparepart Routes
-    Route::prefix('spareparts')->name('spareparts.')->group(function () {
-        Route::get('/', [SparepartController::class, 'index'])->name('index');
-        Route::get('/create', [SparepartController::class, 'create'])->name('create');
-        Route::post('/', [SparepartController::class, 'store'])->name('store');
-        Route::get('/unduh', [SparepartController::class, 'unduh'])->name('unduh');
-        Route::get('/pdf/{hashid}', [SparepartController::class, 'downloadPdf'])->name('pdf');
-        Route::get('/check-stock', [SparepartController::class, 'checkStock'])->name('checkstock');
-        Route::get('/qr', [SparepartController::class, 'generateAllQrCodes']);
-        Route::get('/trashed', [SparepartController::class, 'trashed'])->name('trashed');
+    Route::prefix('sparepart')->name('sparepart.')->group(function () {
+        Route::get('/', [SparepartsController::class, 'index'])->name('index');
+        Route::get('/create', [SparepartsController::class, 'create'])->name('create');
+        Route::post('/', [SparepartsController::class, 'store'])->name('store');
+        Route::get('/unduh', [SparepartsController::class, 'unduh'])->name('unduh');
+        Route::get('/pdf/{hashid}', [SparepartsController::class, 'downloadPdf'])->name('pdf');
+        Route::get('/check-stock', [SparepartsController::class, 'checkStock'])->name('checkstock');
+        Route::get('/qr', [SparepartsController::class, 'generateAllQrCodes']);
+        Route::get('/trashed', [SparepartsController::class, 'trashed'])->name('trashed');
 
         // Hashid based routes
-        Route::get('/{hashid}', [SparepartController::class, 'show'])->name('show');
-        Route::get('/{hashid}/edit', [SparepartController::class, 'edit'])->name('edit');
-        Route::put('/{hashid}', [SparepartController::class, 'update'])->name('update');
-        Route::get('/{hashid}/regenerate-qr', [SparepartController::class, 'regenerateQrCode'])->name('regenerateQrCode');
-        Route::delete('/{hashid}', [SparepartController::class, 'destroy'])->name('destroy');
-        Route::post('/{hashid}/restore', [SparepartController::class, 'restore'])->name('restore');
-        Route::delete('/{hashid}/force-delete', [SparepartController::class, 'forceDelete'])->name('forceDelete');
+        Route::get('/{hashid}', [SparepartsController::class, 'show'])->name('show');
+        Route::get('/{hashid}/edit', [SparepartsController::class, 'edit'])->name('edit');
+        Route::put('/{hashid}', [SparepartsController::class, 'update'])->name('update');
+        Route::get('/{hashid}/regenerate-qr', [SparepartsController::class, 'regenerateQrCode'])->name('regenerateQrCode');
+        Route::delete('/{hashid}', [SparepartsController::class, 'destroy'])->name('destroy');
+        Route::post('/{hashid}/restore', [SparepartsController::class, 'restore'])->name('restore');
+        Route::delete('/{hashid}/force-delete', [SparepartsController::class, 'forceDelete'])->name('forceDelete');
     });
 
     // Pengambilan Sparepart Routes
@@ -138,14 +138,14 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Bagian Routes
-    Route::prefix('bagian')->name('bagian.')->group(function () {
-        Route::get('/', [BagianController::class, 'index'])->name('index');
-        Route::get('/create', [BagianController::class, 'create'])->name('create');
-        Route::post('/', [BagianController::class, 'store'])->name('store');
+    Route::prefix('bagians')->name('bagians.')->group(function () {
+        Route::get('/', [BagiansController::class, 'index'])->name('index');
+        Route::get('/create', [BagiansController::class, 'create'])->name('create');
+        Route::post('/', [BagiansController::class, 'store'])->name('store');
 
         // Bagian based routes
-        Route::get('/{bagian}/edit', [BagianController::class, 'edit'])->name('edit');
-        Route::put('/{bagian}', [BagianController::class, 'update'])->name('update');
-        Route::delete('/{bagian}', [BagianController::class, 'destroy'])->name('destroy');
+        Route::get('/{bagian}/edit', [BagiansController::class, 'edit'])->name('edit');
+        Route::put('/{bagian}', [BagiansController::class, 'update'])->name('update');
+        Route::delete('/{bagian}', [BagiansController::class, 'destroy'])->name('destroy');
     });
 });

@@ -34,7 +34,7 @@ class AuthController extends Controller
                 'status'  => true,
                 'message' => 'Login berhasil',
                 'token'   => $token,
-                'user'    => $user->only(['id', 'name', 'email', 'role', 'bagian_id', 'hashid'])
+                'user'    => $user->only(['id', 'hashid', 'name', 'email', 'role', 'bagian_id'])
             ]);
 
         } catch (ValidationException $e) {
@@ -44,7 +44,7 @@ class AuthController extends Controller
                 'errors'  => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Login Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Login Error: ' . $e->getMessage());
             return response()->json([
                 'status'  => false,
                 'message' => 'Terjadi kesalahan saat login'
@@ -77,7 +77,7 @@ class AuthController extends Controller
                 'status'  => true,
                 'message' => 'Registrasi berhasil',
                 'token'   => $token,
-                'user'    => $user->only(['id', 'name', 'email', 'role', 'bagian_id', 'hashid'])
+                'user'    => $user->only(['id', 'hashid', 'name', 'email', 'role', 'bagian_id'])
             ], 201);
 
         } catch (ValidationException $e) {
@@ -99,7 +99,6 @@ class AuthController extends Controller
     {
         try {
             $request->user()->tokens()->delete();
-
             return response()->json([
                 'status'  => true,
                 'message' => 'Logout berhasil'
@@ -108,7 +107,7 @@ class AuthController extends Controller
             Log::error('Logout Error: ' . $e->getMessage());
             return response()->json([
                 'status'  => false,
-                'message' => 'Gagal melakukan logout'
+                'message' => 'Gagal logout'
             ], 500);
         }
     }
@@ -117,7 +116,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'status' => true,
-            'user'   => $request->user()->only(['id', 'name', 'email', 'role', 'bagian_id', 'hashid'])
+            'user'   => $request->user()->only(['id', 'hashid', 'name', 'email', 'role', 'bagian_id'])
         ]);
     }
 
@@ -141,7 +140,7 @@ class AuthController extends Controller
             return response()->json([
                 'status'  => true,
                 'message' => 'Profil berhasil diperbarui',
-                'user'    => $user->only(['id', 'name', 'email', 'role', 'bagian_id', 'hashid'])
+                'user'    => $user->only(['id', 'hashid', 'name', 'email', 'role', 'bagian_id'])
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -152,7 +151,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             Log::error('Update Profile Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'Gagal memperbarui profil'
             ], 500);
         }

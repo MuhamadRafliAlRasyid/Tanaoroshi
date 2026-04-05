@@ -19,7 +19,7 @@
 
             <!-- Form Pencarian -->
             <div class="mb-6 flex items-center space-x-2 w-full">
-                <form action="{{ route('bagian.index') }}" method="GET" class="w-full flex items-center space-x-2">
+                <form action="{{ route('bagians.index') }}" method="GET" class="w-full flex items-center space-x-2">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama bagian..."
                         class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                     <button type="submit"
@@ -29,7 +29,7 @@
                 </form>
             </div>
 
-            <a href="{{ route('bagian.create') }}"
+            <a href="{{ route('bagians.create') }}"
                 class="mb-6 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
                 <i class="fas fa-plus mr-2"></i> Tambah Bagian
             </a>
@@ -49,12 +49,12 @@
                                 <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
                                 <td class="px-4 py-2 text-gray-900">{{ $bagian->nama }}</td>
                                 <td class="px-4 py-2 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('bagian.edit', $bagian->hashid) }}"
+                                    <a href="{{ route('bagians.edit', $bagian->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit Bagian">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('bagian.destroy', $bagian->hashid) }}" method="POST"
+                                    <form action="{{ route('bagians.destroy', $bagian->hashid) }}" method="POST"
                                         class="inline">
                                         @csrf
                                         @method('DELETE')

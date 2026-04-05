@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('spareparts.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4"
+            <form action="{{ route('sparepart.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4"
                 id="sparepartForm">
                 @csrf
 

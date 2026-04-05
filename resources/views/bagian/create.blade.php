@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('bagian.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4">
+            <form action="{{ route('bagians.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4">
                 @csrf
 
                 <div class="form-group">

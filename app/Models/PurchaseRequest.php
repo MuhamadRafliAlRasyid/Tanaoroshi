@@ -9,9 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PurchaseRequest extends Model
 {
-    use HasFactory;
-    use HasHashId;
-
+    use HasFactory,HasHashId;
+    protected $appends = ['hashid'];
     protected $table = 'purchase_requests';
 
     protected $fillable = [

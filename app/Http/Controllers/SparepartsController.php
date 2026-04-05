@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class SparepartController extends Controller
+class SparepartsController extends Controller
 {
     public function getRouteKeyName()
     {

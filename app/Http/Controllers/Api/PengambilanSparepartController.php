@@ -41,87 +41,203 @@ class PengambilanSparepartController extends Controller
     }
 
     public function store(Request $request)
-    {
-        try {
-            $request->validate([
-                'spareparts_id' => 'required|exists:spareparts,id',
-                'jumlah' => 'required|integer|min:1',
-                'satuan' => 'required|string|max:50',
-                'keperluan' => 'required|string|max:255',
-                'waktu_pengambilan' => 'required|date',
-                'part_type' => 'required|in:baru,bekas',
-            ]);
+{
+    try {
+        $request->validate([
+            'spareparts_id'     => 'required|string',           // ← ubah ke string (hashid)
+            'jumlah'            => 'required|integer|min:1',
+            'satuan'            => 'required|string|max:50',
+            'keperluan'         => 'required|string|max:255',
+            'waktu_pengambilan' => 'required|date',
+            'part_type'         => 'required|in:baru,bekas',
+        ]);
 
-            $sparepart = Spareparts::findOrFail($request->spareparts_id);
+        // Decode hashid menjadi ID asli
+        $sparepartId = app(\App\Services\HashIdService::class)->decode($request->spareparts_id);
 
-            if ($request->part_type === 'baru' && $sparepart->jumlah_baru < $request->jumlah) {
-                return response()->json(['status' => false, 'message' => 'Stok baru tidak mencukupi'], 422);
-            }
-            if ($request->part_type === 'bekas' && $sparepart->jumlah_bekas < $request->jumlah) {
-                return response()->json(['status' => false, 'message' => 'Stok bekas tidak mencukupi'], 422);
-            }
-
-            $pengambilan = PengambilanSparepart::create([
-                'user_id' => Auth::id(),
-                'bagian_id' => Auth::user()->bagian_id,
-                'spareparts_id' => $request->spareparts_id,
-                'jumlah' => $request->jumlah,
-                'satuan' => $request->satuan,
-                'keperluan' => $request->keperluan,
-                'waktu_pengambilan' => $request->waktu_pengambilan,
-                'part_type' => $request->part_type,
-            ]);
-
-            // Kurangi stok
-            if ($request->part_type === 'baru') {
-                $sparepart->decrement('jumlah_baru', $request->jumlah);
-            } else {
-                $sparepart->decrement('jumlah_bekas', $request->jumlah);
-            }
-
+        if (!$sparepartId) {
             return response()->json([
-                'status' => true,
-                'message' => 'Pengambilan sparepart berhasil dicatat',
-                'data' => $pengambilan->load('sparepart')
-            ], 201);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['status' => false, 'message' => 'Validasi gagal', 'errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            Log::error('Pengambilan Store Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Gagal menyimpan pengambilan'], 500);
+                'status' => false,
+                'message' => 'Hash ID sparepart tidak valid'
+            ], 422);
         }
-    }
 
-    public function show(PengambilanSparepart $pengambilan)
-    {
+        $sparepart = Spareparts::findOrFail($sparepartId);
+
+        // Cek stok
+        if ($request->part_type === 'baru' && $sparepart->jumlah_baru < $request->jumlah) {
+            return response()->json(['status' => false, 'message' => 'Stok baru tidak mencukupi'], 422);
+        }
+        if ($request->part_type === 'bekas' && $sparepart->jumlah_bekas < $request->jumlah) {
+            return response()->json(['status' => false, 'message' => 'Stok bekas tidak mencukupi'], 422);
+        }
+
+        $pengambilan = PengambilanSparepart::create([
+            'user_id'           => Auth::id(),
+            'bagian_id'         => Auth::user()->bagian_id ?? 1,
+            'spareparts_id'     => $sparepartId,           // ← simpan ID integer
+            'jumlah'            => $request->jumlah,
+            'satuan'            => $request->satuan,
+            'keperluan'         => $request->keperluan,
+            'waktu_pengambilan' => $request->waktu_pengambilan,
+            'part_type'         => $request->part_type,
+        ]);
+
+        // Kurangi stok
+        if ($request->part_type === 'baru') {
+            $sparepart->decrement('jumlah_baru', $request->jumlah);
+        } else {
+            $sparepart->decrement('jumlah_bekas', $request->jumlah);
+        }
+
         return response()->json([
             'status' => true,
-            'data' => $pengambilan->load(['user', 'bagian', 'sparepart'])
-        ]);
-    }
+            'message' => 'Pengambilan sparepart berhasil dicatat',
+            'data' => $pengambilan->load('sparepart')
+        ], 201);
 
-    public function update(Request $request, PengambilanSparepart $pengambilan)
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Validasi gagal',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Pengambilan Store Error: ' . $e->getMessage());
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal menyimpan pengambilan: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+   public function show(Request $request, $hashid)
     {
         try {
-            $request->validate([
-                'jumlah' => 'sometimes|integer|min:1',
-                'keperluan' => 'sometimes|string|max:255',
-                'waktu_pengambilan' => 'sometimes|date',
-            ]);
+            Log::info('Pengambilan show accessed with hashid: ' . $hashid);
 
-            $pengambilan->update($request->all());
+            $id = app(\App\Services\HashIdService::class)->decode($hashid);
+
+            if ($id === null) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Hash ID tidak valid'
+                ], 404);
+            }
+
+            $pengambilan = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])->find($id);
+
+            if (!$pengambilan) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data pengambilan tidak ditemukan'
+                ], 404);
+            }
 
             return response()->json([
                 'status' => true,
-                'message' => 'Data pengambilan berhasil diperbarui',
                 'data' => $pengambilan
             ]);
+
         } catch (\Exception $e) {
-            Log::error('Pengambilan Update Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Gagal memperbarui data'], 500);
+            Log::error('Pengambilan Show Error: ' . $e->getMessage() . ' | Hashid: ' . $hashid);
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal mengambil detail pengambilan'
+            ], 500);
         }
     }
+
+    public function update(Request $request, $hashid)
+{
+    try {
+        $request->validate([
+            'spareparts_id'     => 'sometimes|required|string',
+            'jumlah'            => 'sometimes|integer|min:1',
+            'satuan'            => 'sometimes|string|max:50',
+            'keperluan'         => 'sometimes|string|max:255',
+            'waktu_pengambilan' => 'sometimes|date',
+            'part_type'         => 'sometimes|required|in:baru,bekas',
+        ]);
+
+        $pengambilanId = app(\App\Services\HashIdService::class)->decode($hashid);
+        if (!$pengambilanId) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Hash ID pengambilan tidak valid'
+            ], 404);
+        }
+
+        $pengambilan = PengambilanSparepart::findOrFail($pengambilanId);
+
+        if (Auth::user()->role !== 'admin' && Auth::id() !== $pengambilan->user_id) {
+            return response()->json(['status' => false, 'message' => 'Tidak memiliki izin'], 403);
+        }
+
+        $sparepartId = $pengambilan->spareparts_id;
+        if ($request->has('spareparts_id') && $request->spareparts_id) {
+            $sparepartId = app(\App\Services\HashIdService::class)->decode($request->spareparts_id);
+            if (!$sparepartId) {
+                return response()->json(['status' => false, 'message' => 'Hash ID sparepart tidak valid'], 422);
+            }
+        }
+
+        $sparepart = Spareparts::findOrFail($sparepartId);
+
+        // Kembalikan stok lama
+        if ($pengambilan->part_type === 'baru') {
+            $sparepart->increment('jumlah_baru', $pengambilan->jumlah);
+        } else {
+            $sparepart->increment('jumlah_bekas', $pengambilan->jumlah);
+        }
+
+        $newJumlah = $request->input('jumlah', $pengambilan->jumlah);
+        $newPartType = $request->input('part_type', $pengambilan->part_type);
+
+        // Cek stok baru
+        if ($newPartType === 'baru' && $sparepart->jumlah_baru < $newJumlah) {
+            return response()->json(['status' => false, 'message' => 'Stok baru tidak mencukupi'], 422);
+        }
+        if ($newPartType === 'bekas' && $sparepart->jumlah_bekas < $newJumlah) {
+            return response()->json(['status' => false, 'message' => 'Stok bekas tidak mencukupi'], 422);
+        }
+
+        $pengambilan->update([
+            'spareparts_id'     => $sparepartId,
+            'jumlah'            => $newJumlah,
+            'satuan'            => $request->input('satuan', $pengambilan->satuan),
+            'keperluan'         => $request->input('keperluan', $pengambilan->keperluan),
+            'waktu_pengambilan' => $request->input('waktu_pengambilan', $pengambilan->waktu_pengambilan),
+            'part_type'         => $newPartType,
+        ]);
+
+        // Kurangi stok baru
+        if ($newPartType === 'baru') {
+            $sparepart->decrement('jumlah_baru', $newJumlah);
+        } else {
+            $sparepart->decrement('jumlah_bekas', $newJumlah);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Pengambilan berhasil diperbarui',
+            'data' => $pengambilan->fresh()->load('sparepart')
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Validasi gagal',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Pengambilan Update Error: ' . $e->getMessage());
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal memperbarui pengambilan'
+        ], 500);
+    }
+}
 
     public function destroy(PengambilanSparepart $pengambilan)
     {

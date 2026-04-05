@@ -29,17 +29,17 @@ class UserController extends Controller
 
             return response()->json([
                 'status' => true,
-                'data' => $users->items(),
-                'meta' => [
+                'data'   => $users->items(),
+                'meta'   => [
                     'current_page' => $users->currentPage(),
-                    'last_page' => $users->lastPage(),
-                    'total' => $users->total(),
+                    'last_page'    => $users->lastPage(),
+                    'total'        => $users->total(),
                 ]
             ]);
         } catch (\Exception $e) {
             Log::error('User Index Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'Gagal mengambil data pengguna'
             ], 500);
         }
@@ -79,8 +79,8 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error('User Store Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal membuat user baru'
+                'status'  => false,
+                'message' => 'Gagal membuat user'
             ], 500);
         }
     }
@@ -124,7 +124,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error('User Update Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'Gagal memperbarui user'
             ], 500);
         }
@@ -141,7 +141,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error('User Destroy Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'Gagal menghapus user'
             ], 500);
         }

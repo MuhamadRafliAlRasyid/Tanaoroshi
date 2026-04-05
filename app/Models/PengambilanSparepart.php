@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PengambilanSparepart extends Model
 {
-    use HasFactory;
-    use HasHashId;
+    use HasFactory, HasHashId;
+    protected $appends = ['hashid'];
 
     protected $table = 'pengambilan_spareparts';
     protected $fillable = [

@@ -12,9 +12,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Spareparts extends Model
 {
-    use HasFactory, SoftDeletes, Notifiable;
-    use HasHashId;
+    use HasFactory, SoftDeletes, Notifiable, HasHashId;
 
+    protected $appends = ['hashid'];
     protected $table = 'spareparts';
 
     protected $fillable = [

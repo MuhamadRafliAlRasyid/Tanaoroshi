@@ -17,7 +17,7 @@
             @endif
 
             <!-- Form Pencarian -->
-            <form action="{{ route('spareparts.index') }}" method="GET" class="mb-6 flex items-center space-x-2 w-full">
+            <form action="{{ route('sparepart.index') }}" method="GET" class="mb-6 flex items-center space-x-2 w-full">
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Cari nama part, model, atau merk..."
                     class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
@@ -30,18 +30,18 @@
             <!-- Tombol Tambah (kiri) dan Unduh (kanan) -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
                 <!-- Tombol Tambah di Kiri -->
-                <a href="{{ route('spareparts.create') }}"
+                <a href="{{ route('sparepart.create') }}"
                     class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
                     <i class="fas fa-plus mr-2"></i> Tambah Sparepart
                 </a>
 
                 <!-- Tombol Unduh di Kanan -->
                 <div class="flex space-x-2">
-                    <a href="{{ route('spareparts.unduh') }}"
+                    <a href="{{ route('sparepart.unduh') }}"
                         class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center">
                         <i class="fas fa-download mr-1"></i> Unduh
                     </a>
-                    <a href="{{ route('spareparts.trashed') }}"
+                    <a href="{{ route('sparepart.trashed') }}"
                         class="bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 px-3 rounded-md shadow-md text-sm transition duration-200 hover:-translate-y-0.5 flex items-center"
                         title="Lihat Sparepart Terhapus">
                         <i class="fas fa-trash-alt mr-1"></i> Terhapus
@@ -71,17 +71,17 @@
                                 <td class="py-3 px-4">{{ $sparepart->merk }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->jumlah_baru }}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="{{ route('spareparts.show', $sparepart->hashid) }}"
+                                    <a href="{{ route('sparepart.show', $sparepart->hashid) }}"
                                         class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-indigo-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Lihat Sparepart">
                                         <i class="fas fa-eye mr-1"></i> Lihat
                                     </a>
-                                    <a href="{{ route('spareparts.edit', $sparepart->hashid) }}"
+                                    <a href="{{ route('sparepart.edit', $sparepart->hashid) }}"
                                         class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
                                         title="Edit Sparepart">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </a>
-                                    <form action="{{ route('spareparts.destroy', $sparepart->hashid) }}" method="POST"
+                                    <form action="{{ route('sparepart.destroy', $sparepart->hashid) }}" method="POST"
                                         style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus?')">
                                         @csrf
                                         @method('DELETE')
