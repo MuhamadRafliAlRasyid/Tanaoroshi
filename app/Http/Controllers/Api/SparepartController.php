@@ -10,6 +10,22 @@ use Illuminate\Validation\ValidationException;
 
 class SparepartController extends Controller
 {
+    private function resolveId($identifier)
+{
+    // Coba decode sebagai hashid
+    $decoded = app(\App\Services\HashIdService::class)->decode($identifier);
+
+    if ($decoded !== null) {
+        return $decoded;
+    }
+
+    // fallback: kalau numeric ID
+    if (is_numeric($identifier)) {
+        return (int) $identifier;
+    }
+
+    return null;
+}
     // ==================== INDEX (List Aktif) ====================
     public function index(Request $request)
     {
@@ -47,42 +63,47 @@ class SparepartController extends Controller
     }
 
     // ==================== SHOW DETAIL ====================
-    public function show(Request $request, $hashid)
-    {
-        try {
-            Log::info('Sparepart show accessed with hashid: ' . $hashid);
+    public function show(Request $request, $identifier)
+{
+    try {
+        Log::info('Sparepart show accessed with identifier: ' . $identifier);
 
-            $id = app(\App\Services\HashIdService::class)->decode($hashid);
+        $id = $this->resolveId($identifier);
 
-            if ($id === null) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Hash ID tidak valid'
-                ], 404);
-            }
-
-            $sparepart = Spareparts::find($id);
-
-            if (!$sparepart) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Sparepart tidak ditemukan'
-                ], 404);
-            }
-
-            return response()->json([
-                'status' => true,
-                'data' => $sparepart
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Sparepart Show Error: ' . $e->getMessage() . ' | Hashid: ' . $hashid);
+        if ($id === null) {
             return response()->json([
                 'status' => false,
-                'message' => 'Gagal mengambil detail sparepart'
-            ], 500);
+                'message' => 'ID tidak valid'
+            ], 404);
         }
+
+        $sparepart = Spareparts::find($id);
+
+        if (!$sparepart) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Sparepart tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                ...$sparepart->toArray(),
+                'hashid' => app(\App\Services\HashIdService::class)->encode($sparepart->id),
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Sparepart Show Error: ' . $e->getMessage() . ' | identifier: ' . $identifier);
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal mengambil detail sparepart'
+        ], 500);
     }
+}
+
 
     // ==================== STORE ====================
     public function store(Request $request)
@@ -334,4 +355,42 @@ class SparepartController extends Controller
             ], 500);
         }
     }
+    // Di dalam class SparepartController
+
+public function showByNumericId($id)
+{
+    try {
+        Log::info('Sparepart showByNumericId called with id: ' . $id);
+
+        if (!is_numeric($id)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'ID harus berupa angka'
+            ], 422);
+        }
+
+        $sparepart = Spareparts::find($id);
+
+        if (!$sparepart) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Sparepart tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => array_merge($sparepart->toArray(), [
+                'hashid' => $sparepart->hashid,   // pastikan trait HasHashId aktif
+            ])
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Sparepart showByNumericId Error: ' . $e->getMessage());
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal mengambil data sparepart'
+        ], 500);
+    }
+}
 }

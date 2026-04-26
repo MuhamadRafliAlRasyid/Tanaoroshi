@@ -7,15 +7,20 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
-    public function toArray(Request $request): array
-    {
-        return [
-            'id' => $this->hashid,
-            'name' => $this->name,
-            'email' => $this->email,
-            'role' => $this->role,
-            'bagian' => $this->bagian?->nama,
-            'photo' => $this->profile_photo_url,
-        ];
-    }
+    public function toArray($request)
+{
+    return [
+        'id' => $this->hashid,
+        'name' => $this->name,
+        'email' => $this->email,
+        'role' => $this->role,
+        'bagian_id' => $this->bagian?->nama,
+
+        // 🔥 WAJIB TAMBAH INI
+        'profile_photo_path' => $this->profile_photo_path,
+
+        // BONUS (lebih enak dipakai Flutter)
+        'profile_photo_url' => url('/images/profile/' . $this->profile_photo_path),
+    ];
+}
 }

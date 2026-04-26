@@ -4,101 +4,154 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Bagian;
 use Illuminate\Http\Request;
+use App\Services\HashIdService;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
-
 class BagianController extends Controller
 {
-    public function index(Request $request)
+    protected function resolveHashid($hashid)
     {
-        try {
-            $bagians = Bagian::latest()->paginate(15);
-
-            return response()->json([
-                'status' => true,
-                'data' => $bagians->items(),
-                'meta' => [
-                    'current_page' => $bagians->currentPage(),
-                    'last_page' => $bagians->lastPage(),
-                    'total' => $bagians->total(),
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Bagian Index Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengambil data bagian'
-            ], 500);
+        $id = app(HashIdService::class)->decode($hashid);
+        if (!$id) {
+            abort(404, 'Hash ID tidak valid');
         }
+        return $id;
     }
 
+
+    public function index()
+    {
+        $bagian = Bagian::all();
+
+        return response()->json([
+            'status' => true,
+            'data' => $bagian->map(function ($b) {
+                return [
+                    'id' => $b->id,
+                    'hashid' => app(HashIdService::class)->encode($b->id), // ✅ WAJIB
+                    'nama' => $b->nama,
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Store a newly created resource.
+     */
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'nama_bagian' => 'required|string|max:255|unique:bagian,nama_bagian',
-                'deskripsi' => 'nullable|string',
+            $validated = $request->validate([
+                'nama' => 'required|string|max:255|unique:bagian,nama',
+                'deskripsi'   => 'nullable|string|max:500',
             ]);
 
-            $bagian = Bagian::create($request->all());
+            $bagian = Bagian::create($validated);
+
+            Log::info('Bagian created successfully', [
+                'bagian_id' => $bagian->id,
+                'nama' => $bagian->nama
+            ]);
 
             return response()->json([
-                'status' => true,
+                'status'  => true,
                 'message' => 'Bagian berhasil ditambahkan',
-                'data' => $bagian
+                'data'    => $bagian
             ], 201);
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'errors'  => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             Log::error('Bagian Store Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Gagal menyimpan data'], 500);
-        }
-    }
-
-    public function show(Bagian $bagian)
-    {
-        return response()->json(['status' => true, 'data' => $bagian]);
-    }
-
-    public function update(Request $request, Bagian $bagian)
-    {
-        try {
-            $request->validate([
-                'nama_bagian' => 'required|string|max:255|unique:bagian,nama_bagian,' . $bagian->id,
-                'deskripsi' => 'nullable|string',
-            ]);
-
-            $bagian->update($request->all());
-
             return response()->json([
-                'status' => true,
-                'message' => 'Bagian berhasil diperbarui',
-                'data' => $bagian
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['status' => false, 'message' => 'Validasi gagal', 'errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            Log::error('Bagian Update Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Gagal memperbarui data'], 500);
+                'status'  => false,
+                'message' => 'Gagal menyimpan data bagian'
+            ], 500);
         }
     }
 
-    public function destroy(Bagian $bagian)
-    {
-        try {
-            $bagian->delete();
-            return response()->json([
-                'status' => true,
-                'message' => 'Bagian berhasil dihapus'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Bagian Destroy Error: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => 'Gagal menghapus data'], 500);
-        }
+    /**
+     * Display the specified resource.
+     */
+    public function show($hashid)
+{
+    $id = app(HashIdService::class)->decode($hashid);
+
+    if (!$id) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Hash ID tidak valid'
+        ], 404);
     }
+
+    $bagian = Bagian::find($id);
+
+    if (!$bagian) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Bagian tidak ditemukan'
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'data' => $bagian
+    ]);
+}
+
+    /**
+     * Update the specified resource.
+     */
+    public function update(Request $request, $hashid)
+{
+    $id = app(HashIdService::class)->decode($hashid);
+
+    $bagian = Bagian::find($id);
+
+    if (!$bagian) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Bagian tidak ditemukan'
+        ], 404);
+    }
+
+    $bagian->update([
+        'nama' => $request->nama
+    ]);
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Berhasil update',
+        'data' => $bagian
+    ]);
+}
+
+    /**
+     * Remove the specified resource.
+     */
+    public function destroy($hashid)
+{
+    $id = app(HashIdService::class)->decode($hashid);
+
+    $bagian = Bagian::find($id);
+
+    if (!$bagian) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Bagian tidak ditemukan'
+        ], 404);
+    }
+
+    $bagian->delete();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Berhasil dihapus'
+    ]);
+}
 }

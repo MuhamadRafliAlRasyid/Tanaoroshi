@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Spareparts;
 use App\Models\PurchaseRequest;
-use App\Models\PengambilanSparepart;
-use Illuminate\Http\Request;
+use App\Models\Pengambilan;
+
 
 class AdminDashboardController extends Controller
 {
@@ -13,7 +13,7 @@ class AdminDashboardController extends Controller
     {
         $sparepartCount = Spareparts::count();
         $purchaseRequestCount = PurchaseRequest::count();
-        $pengambilanCount = PengambilanSparepart::count();
+        $pengambilanCount = Pengambilan::count();
 
         return view('admin.dashboard', compact('sparepartCount', 'purchaseRequestCount', 'pengambilanCount'));
     }

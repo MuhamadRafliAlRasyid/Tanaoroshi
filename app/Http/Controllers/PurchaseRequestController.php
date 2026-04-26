@@ -75,62 +75,62 @@ class PurchaseRequestController extends Controller
 
     public function store(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        try {
+            $validated = $request->validate([
+                'nama_part'           => 'required|string|max:255',
+                'part_number'         => 'required|string|max:255',
+                'link_website'        => 'nullable|url',
+                'waktu_request'       => 'required|date',
+                'quantity'            => 'required|integer|min:1',
+                'satuan'              => 'required|string|max:50',
+                'mas_deliver'         => 'required|date|after_or_equal:waktu_request',
+                'untuk_apa'           => 'required|string|max:500',
+                'pic'                 => 'required|string|max:255',
+                'quotation_lead_time' => 'nullable|string|max:255',
+                'sparepart_id'        => 'nullable|string',
+            ]);
 
-        Log::info('=== START PURCHASE REQUEST CREATION ===');
-
-        $validated = $request->validate([
-            'nama_part' => 'required|string|max:255',
-            'part_number' => 'required|string|max:255',
-            'link_website' => 'nullable|url',
-            'waktu_request' => 'required|date',
-            'quantity' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:50',
-            'mas_deliver' => 'required|date|after_or_equal:waktu_request',
-            'untuk_apa' => 'required|string|max:500',
-            'pic' => 'required|string|max:255',
-            'quotation_lead_time' => 'nullable|string|max:255',
-            'sparepart_id' => 'nullable|string',
-        ]);
-        $validated['user_id'] = Auth::id();
-        $validated['status'] = 'PR';
-        // Decode dan simpan sparepart_id
-        $sparepartId = null;
-        if ($request->has('sparepart_id') && !empty($request->sparepart_id)) {
-            $sparepartId = app(HashIdService::class)->decode($request->sparepart_id);
-            if ($sparepartId) {
-                $validated['sparepart_id'] = $sparepartId;
+            $sparepartId = null;
+            if (!empty($request->sparepart_id)) {
+                $sparepartId = app(HashIdService::class)->decode($request->sparepart_id);
             }
+
+            $pr = PurchaseRequest::create([
+                'user_id'             => Auth::id(),
+                'nama_part'           => $validated['nama_part'],
+                'part_number'         => $validated['part_number'],
+                'link_website'        => $validated['link_website'] ?? null,
+                'waktu_request'       => $validated['waktu_request'],
+                'quantity'            => $validated['quantity'],
+                'satuan'              => $validated['satuan'],
+                'mas_deliver'         => $validated['mas_deliver'],
+                'untuk_apa'           => $validated['untuk_apa'],
+                'pic'                 => $validated['pic'],
+                'quotation_lead_time' => $validated['quotation_lead_time'] ?? null,
+                'sparepart_id'        => $sparepartId,
+                'status'              => 'PR',
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Purchase Request berhasil dibuat',
+                'data'    => $pr
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation Error in Store: ', $e->errors());
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validasi gagal',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('PurchaseRequest Store Error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal membuat purchase request'
+            ], 500);
         }
-        // Create purchase request
-        $purchaseRequest = PurchaseRequest::create($validated);
-        Log::info('Purchase Request created with ID: ' . $purchaseRequest->id . ', HashID: ' . $purchaseRequest->hashid);
-
-        // 🔥 KIRIM NOTIFIKASI KE SUPER USERS - DENGAN LOGGING DETAIL
-        $this->notifySuperUsers($purchaseRequest);
-
-        // Update sparepart jika ada
-        if ($sparepartId) {
-            $sparepart = Spareparts::find($sparepartId);
-            if ($sparepart) {
-                $sparepart->update(['purchase_request_id' => $purchaseRequest->id]);
-                Log::info('Sparepart updated with PR ID: ' . $purchaseRequest->id);
-            }
-        }
-
-        // Create log
-        $purchaseRequest->logs()->create([
-            'action' => 'created',
-            'notes' => 'Purchase Request dibuat oleh ' . Auth::user()->name,
-        ]);
-
-        Log::info('=== END PURCHASE REQUEST CREATION ===');
-
-        return redirect()
-            ->route('purchase_requests.show', $purchaseRequest->hashid)
-            ->with('success', 'Purchase Request berhasil dibuat! Menunggu approval dari Supervisor.');
     }
 
     // Method baru untuk notifikasi super users - DIPERBAIKI
@@ -227,26 +227,64 @@ class PurchaseRequestController extends Controller
 
     public function update(Request $request, $hashid)
     {
-        $purchaseRequest = $this->resolveHashid($hashid);
+        try {
+            $id = $this->resolveHashid($hashid);
+            $purchaseRequest = PurchaseRequest::findOrFail($id);
 
-        $validated = $request->validate([
-            'nama_part' => 'required|string|max:255',
-            'part_number' => 'required|string|max:255',
-            'link_website' => 'nullable|url',
-            'waktu_request' => 'required|date',
-            'quantity' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:50',
-            'mas_deliver' => 'required|date|after_or_equal:waktu_request',
-            'untuk_apa' => 'required|string|max:255',
-            'pic' => 'required|string|max:255',
-            'quotation_lead_time' => 'nullable|string|max:255',
-        ]);
+            $validated = $request->validate([
+                'nama_part'           => 'required|string|max:255',
+                'part_number'         => 'required|string|max:255',
+                'link_website'        => 'nullable|url',
+                'waktu_request'       => 'required|date',
+                'quantity'            => 'required|integer|min:1',
+                'satuan'              => 'required|string|max:50',
+                'mas_deliver'         => 'required|date|after_or_equal:waktu_request',
+                'untuk_apa'           => 'required|string|max:500',
+                'pic'                 => 'required|string|max:255',
+                'quotation_lead_time' => 'nullable|string|max:255',
+                'sparepart_id'        => 'nullable|string',
+            ]);
 
-        $purchaseRequest->update($validated);
+            $sparepartId = null;
+            if (!empty($request->sparepart_id)) {
+                $sparepartId = app(HashIdService::class)->decode($request->sparepart_id);
+            }
 
-        return redirect()->route('purchase_requests.show', $purchaseRequest->hashid)->with('success', 'Purchase Request berhasil diperbarui.');
+            $purchaseRequest->update([
+                'nama_part'           => $validated['nama_part'],
+                'part_number'         => $validated['part_number'],
+                'link_website'        => $validated['link_website'] ?? null,
+                'waktu_request'       => $validated['waktu_request'],
+                'quantity'            => $validated['quantity'],
+                'satuan'              => $validated['satuan'],
+                'mas_deliver'         => $validated['mas_deliver'],
+                'untuk_apa'           => $validated['untuk_apa'],
+                'pic'                 => $validated['pic'],
+                'quotation_lead_time' => $validated['quotation_lead_time'] ?? null,
+                'sparepart_id'        => $sparepartId,
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Purchase Request berhasil diperbarui',
+                'data'    => $purchaseRequest->fresh()
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation Error in Update: ', $e->errors());
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validasi gagal',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('PurchaseRequest Update Error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal memperbarui purchase request'
+            ], 500);
+        }
     }
-
     public function destroy($hashid)
     {
         $purchaseRequest = $this->resolveHashid($hashid);

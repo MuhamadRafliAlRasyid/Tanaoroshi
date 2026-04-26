@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\PengambilanSparepart;
+use App\Models\Pengambilan;
 use App\Models\Spareparts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,9 +14,12 @@ class PengambilanSparepartController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
+            $user = Auth::user();
 
-            if (Auth::user()->role !== 'admin') {
+            $query = Pengambilan::with(['user', 'bagian', 'sparepart']);
+
+            // 🔥 FILTER USER
+            if (!$user || $user->role !== 'admin') {
                 $query->where('user_id', Auth::id());
             }
 
@@ -72,7 +75,7 @@ class PengambilanSparepartController extends Controller
             return response()->json(['status' => false, 'message' => 'Stok bekas tidak mencukupi'], 422);
         }
 
-        $pengambilan = PengambilanSparepart::create([
+        $pengambilan = Pengambilan::create([
             'user_id'           => Auth::id(),
             'bagian_id'         => Auth::user()->bagian_id ?? 1,
             'spareparts_id'     => $sparepartId,           // ← simpan ID integer
@@ -125,7 +128,7 @@ class PengambilanSparepartController extends Controller
                 ], 404);
             }
 
-            $pengambilan = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])->find($id);
+            $pengambilan = Pengambilan::with(['user', 'bagian', 'sparepart'])->find($id);
 
             if (!$pengambilan) {
                 return response()->json([
@@ -168,7 +171,7 @@ class PengambilanSparepartController extends Controller
             ], 404);
         }
 
-        $pengambilan = PengambilanSparepart::findOrFail($pengambilanId);
+        $pengambilan = Pengambilan::findOrFail($pengambilanId);
 
         if (Auth::user()->role !== 'admin' && Auth::id() !== $pengambilan->user_id) {
             return response()->json(['status' => false, 'message' => 'Tidak memiliki izin'], 403);
@@ -239,7 +242,7 @@ class PengambilanSparepartController extends Controller
     }
 }
 
-    public function destroy(PengambilanSparepart $pengambilan)
+    public function destroy(Pengambilan $pengambilan)
     {
         try {
             $pengambilan->delete();

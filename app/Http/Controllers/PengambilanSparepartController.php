@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Alat;
 use App\Models\Bagian;
+use App\Models\Pengambilan;
 use App\Models\Spareparts;
-use Illuminate\Http\Request;
+use App\Models\User;
 use App\Services\HashIdService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Log;
-use App\Models\PengambilanSparepart;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PengambilanSparepartController extends Controller
 {
@@ -38,7 +39,7 @@ class PengambilanSparepartController extends Controller
 
     public function index(Request $request)
     {
-        $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
+        $query = Pengambilan::with(['user', 'bagian', 'sparepart']);
 
         if (Auth::check()) {
             if (Auth::user()->role !== 'admin') {
@@ -112,8 +113,14 @@ class PengambilanSparepartController extends Controller
                 'spareparts_id' => $request->spareparts_id,
             ]);
         }
+
         Log::info('Store Request: ', $request->all());
+
         try {
+
+
+
+            // ===================== LOGIC LAMA SPAREPART =====================
             $validated = $request->validate([
                 'user_id' => 'required|exists:users,id',
                 'bagian_id' => 'required|exists:bagian,id',
@@ -123,9 +130,12 @@ class PengambilanSparepartController extends Controller
                 'keperluan' => 'required|string|max:255',
                 'waktu_pengambilan' => 'required|date',
             ]);
+
             $sparepartId = $this->resolveSparepartHash($request->spareparts_id);
             $sparepart = Spareparts::findOrFail($sparepartId);
+
             $jumlah = $request->jumlah;
+
             if ($request->part_type === 'baru') {
                 if ($sparepart->jumlah_baru < $jumlah) {
                     return back()->with('error', 'Stok baru tidak mencukupi.');
@@ -139,14 +149,15 @@ class PengambilanSparepartController extends Controller
             }
 
             $validated['spareparts_id'] = $sparepartId;
-            $pengambilanSparepart = PengambilanSparepart::create($validated);
+
+            $pengambilanSparepart = Pengambilan::create($validated);
+
             return redirect()->route('pengambilan.show', $pengambilanSparepart->hashid)
                 ->with('success', 'Pengambilan sparepart berhasil ditambahkan.');
+            // ===================== END LOGIC LAMA =====================
+
         } catch (\Exception $e) {
-            Log::error('Error di store PengambilanSparepart: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'request' => $request->all(),
-            ]);
+            Log::error('Error di store Pengambilan: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
@@ -157,7 +168,7 @@ class PengambilanSparepartController extends Controller
 
     public function show($hashid)
     {
-        $pengambilanSparepart = PengambilanSparepart::findOrFail(
+        $pengambilanSparepart = Pengambilan::findOrFail(
             $this->resolveHashid($hashid)
         );
 
@@ -178,12 +189,12 @@ class PengambilanSparepartController extends Controller
     {
         if ($hashid) {
             $decodedId = $this->resolveHashid($hashid);
-            $pengambilanSparepart = PengambilanSparepart::with(['user', 'sparepart'])
+            $pengambilanSparepart = Pengambilan::with(['user', 'sparepart'])
                 ->findOrFail($decodedId);
 
             $pengambilanSpareparts = collect([$pengambilanSparepart]);
         } else {
-            $pengambilanSpareparts = PengambilanSparepart::with(['user', 'sparepart'])->get();
+            $pengambilanSpareparts = Pengambilan::with(['user', 'sparepart'])->get();
         }
         $pdf = Pdf::loadView('pengambilan.export-pdf', compact('pengambilanSpareparts'))
             ->setPaper('a4', 'portrait')
@@ -203,7 +214,7 @@ class PengambilanSparepartController extends Controller
     {
         $decodedId = $this->resolveHashid($hashid);
 
-        $pengambilanSparepart = PengambilanSparepart::with(['user', 'bagian', 'sparepart'])
+        $pengambilanSparepart = Pengambilan::with(['user', 'bagian', 'sparepart'])
             ->findOrFail($decodedId);
 
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
@@ -233,7 +244,7 @@ class PengambilanSparepartController extends Controller
     public function update(Request $request, $hashid)
     {
         $decodedId = $this->resolveHashid($hashid);
-        $pengambilanSparepart = PengambilanSparepart::findOrFail($decodedId);
+        $pengambilanSparepart = Pengambilan::findOrFail($decodedId);
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
             abort(403);
         }
@@ -287,7 +298,7 @@ class PengambilanSparepartController extends Controller
     {
         $decodedId = $this->resolveHashid($hashid);
 
-        $pengambilanSparepart = PengambilanSparepart::findOrFail($decodedId);
+        $pengambilanSparepart = Pengambilan::findOrFail($decodedId);
 
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $pengambilanSparepart->user_id) {
             abort(403);

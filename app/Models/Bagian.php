@@ -22,6 +22,6 @@ class Bagian extends Model
 
     public function pengambilanBarangs()
     {
-        return $this->hasMany(pengambilansparepart::class);
+        return $this->hasMany(Pengambilan::class);
     }
 }

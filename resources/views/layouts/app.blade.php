@@ -198,28 +198,53 @@
                                 <div class="bg-red-50 p-2 border-b">
                                     <p class="text-xs font-semibold text-red-700">Stok Kritis</p>
                                 </div>
+                                <!-- NOTIF LOOP (SUDAH FIX TOTAL) -->
                                 @foreach ($criticalNotifications as $notif)
+                                    @php
+                                        $nama = $notif->data['nama_alat'] ?? ($notif->data['nama_part'] ?? '-');
+                                        $jumlah = $notif->data['jumlah_baru'] ?? ($notif->data['jumlah'] ?? '-');
+                                        $titik = $notif->data['titik_pesanan'] ?? null;
+                                    @endphp
+
                                     <a href="{{ $notif->data['action_url'] ?? '#' }}"
                                         class="block p-4 hover:bg-gray-50 transition-all border-b group">
+
                                         <div class="flex items-start gap-3">
                                             <div class="w-2 h-2 bg-red-600 rounded-full mt-1.5 animate-pulse"></div>
+
                                             <div class="flex-1">
                                                 <div class="flex justify-between items-start">
+
+                                                    <!-- ✅ NAMA AMAN -->
                                                     <p class="font-semibold text-sm text-gray-900">
-                                                        {{ $notif->data['nama_part'] }}</p>
-                                                    <span
-                                                        class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">#{{ $notif->data['sparepart_id'] ?? 'N/A' }}</span>
+                                                        {{ $nama }}
+                                                    </p>
+
+                                                    <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                                        #{{ $notif->data['sparepart_id'] ?? ($notif->data['alat_id'] ?? 'N/A') }}
+                                                    </span>
                                                 </div>
+
+                                                <!-- ✅ JUMLAH AMAN -->
                                                 <p class="text-xs text-gray-600 mt-1">
-                                                    Stok: <span
-                                                        class="font-bold text-red-600">{{ $notif->data['jumlah_baru'] }}</span>
-                                                    ≤ Titik: <span
-                                                        class="font-bold">{{ $notif->data['titik_pesanan'] }}</span>
+                                                    Stok:
+                                                    <span class="font-bold text-red-600">
+                                                        {{ $jumlah }}
+                                                    </span>
+
+                                                    @if ($titik)
+                                                        ≤ Titik:
+                                                        <span class="font-bold">
+                                                            {{ $titik }}
+                                                        </span>
+                                                    @endif
                                                 </p>
+
                                                 <p
                                                     class="text-xs text-blue-600 mt-2 group-hover:underline flex items-center">
-                                                    <i class="fas fa-shopping-cart mr-1"></i> Ajukan Pembelian
+                                                    <i class="fas fa-info-circle mr-1"></i> Lihat Detail
                                                 </p>
+
                                                 <p class="text-xs text-gray-400 mt-1">
                                                     {{ $notif->created_at->diffForHumans() }}
                                                 </p>
@@ -242,7 +267,8 @@
                                             <div class="flex-1">
                                                 <div class="flex justify-between items-start">
                                                     <p class="font-semibold text-sm text-gray-900">
-                                                        {{ $notif->data['nama_part'] }}</p>
+                                                        {{ $notif->data['nama_alat'] ?? ($notif->data['nama_part'] ?? '-') }}
+                                                    </p>
                                                     <span
                                                         class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">PR</span>
                                                 </div>
@@ -331,7 +357,9 @@
                         <div class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 px-3">Main Menu
                         </div>
 
-                        @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super')
+                        @php $user = Auth::user(); @endphp
+
+                        @if ($user->isAdminOrSuper())
                             <a href="{{ route('admin.dashboard') }}"
                                 class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
                                 <i class="fas fa-tachometer-alt w-5"></i>
@@ -345,42 +373,121 @@
                             </a>
                         @endif
 
-                        <!-- Sparepart -->
-                        <a href="{{ route('sparepart.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
-                            <i class="fas fa-boxes w-5"></i>
-                            <span class="font-medium">Sparepart</span>
-                        </a>
+                        <div x-data="{ openSparepart: false }">
+                            <button @click="openSparepart = !openSparepart"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-blue-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-boxes w-5"></i>
+                                    <span class="font-medium">Sparepart</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition" :class="{ 'rotate-180': openSparepart }"></i>
+                            </button>
+                            <div x-show="openSparepart" class="pl-10 space-y-1 mt-1">
+                                <a href="{{ route('sparepart.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-arrow-right w-4"></i> Data Sparepart
+                                </a>
+                                <a href="{{ route('purchase_requests.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-shopping-cart w-4"></i> Purchase Request
+                                </a>
+                            </div>
+                        </div>
 
-                        <!-- Pengambilan -->
-                        <a href="{{ route('pengambilan.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
-                            <i class="fas fa-hand-holding w-5"></i>
-                            <span class="font-medium">Daftar Pengambilan</span>
-                        </a>
+                        <div x-data="{ openAlat: false }">
+                            <button @click="openAlat = !openAlat"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-blue-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-tools w-5"></i>
+                                    <span class="font-medium">Alat & Kalibrasi</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition" :class="{ 'rotate-180': openAlat }"></i>
+                            </button>
+                            <div x-show="openAlat" class="pl-10 space-y-1 mt-1">
+                                <a href="{{ route('alat.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-arrow-right w-4"></i> Data Alat
+                                </a>
+                                <a href="{{ route('kategori.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-tags w-4"></i> Kategori Alat
+                                </a>
+                                <a href="{{ route('kalibrasi.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-wrench w-4"></i> Kalibrasi Alat
+                                </a>
+                            </div>
+                        </div>
 
-                        <!-- Purchase Request -->
-                        <a href="{{ route('purchase_requests.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
-                            <i class="fas fa-shopping-cart w-5"></i>
-                            <span class="font-medium">Pengajuan Sparepart</span>
-                        </a>
+                        <!-- Pengambilan & Pengembalian dengan Dropdown -->
+                        <div x-data="{ openPengambilan: false }">
+                            <button @click="openPengambilan = !openPengambilan"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-blue-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-hand-holding w-5"></i>
+                                    <span class="font-medium">Pengambilan </span>
+                                </div>
+                                <i class="fas fa-chevron-down transition" :class="{ 'rotate-180': openPengambilan }"></i>
+                            </button>
+                            <div x-show="openPengambilan" class="pl-10 space-y-1 mt-1">
+                                <a href="{{ route('pengambilan.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-arrow-right w-4"></i>
+                                    <span>Pengambilan Sparepart</span>
+                                </a>
+                                <a href="{{ route('pengambilan_alat.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-undo-alt w-4"></i>
+                                    <span>Pengambilan Alat</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div x-data="{ openPengembalian: false }">
+                            <button @click="openPengembalian = !openPengembalian"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-blue-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-hand-holding w-5"></i>
+                                    <span class="font-medium">Pengembalian </span>
+                                </div>
+                                <i class="fas fa-chevron-down transition" :class="{ 'rotate-180': openPengembalian }"></i>
+                            </button>
+                            <div x-show="openPengembalian" class="pl-10 space-y-1 mt-1">
+                                <a href="{{ route('pengembalian.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-arrow-right w-4"></i>
+                                    <span>Pengembalian Sparepart</span>
+                                </a>
+                                <a href="{{ route('pengembalian_alat.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-undo-alt w-4"></i>
+                                    <span>Pengembalian Alat</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div x-data="{ openUser: false }">
+                            <button @click="openUser = !openUser"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-blue-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-users w-5"></i>
+                                    <span class="font-medium">Manajemen Pengguna</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition" :class="{ 'rotate-180': openUser }"></i>
+                            </button>
+                            <div x-show="openUser" class="pl-10 space-y-1 mt-1">
+                                <a href="{{ route('bagians.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                    <i class="fas fa-building w-4"></i> Departemen / Bagian
+                                </a>
+                                @if (in_array(Auth::user()->role, ['admin', 'super']))
+                                    <a href="{{ route('admin.index') }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 rounded-xl">
+                                        <i class="fas fa-user-cog w-4"></i> Manajemen User
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
 
-                        <!-- Bagian / Departemen -->
-                        <a href="{{ route('bagians.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
-                            <i class="fas fa-building w-5"></i>
-                            <span class="font-medium">Daftar Departemen</span>
-                        </a>
 
-                        <!-- User Management (hanya Admin & Super) -->
-                        @if (in_array(Auth::user()->role, ['admin', 'super']))
-                            <a href="{{ route('admin.index') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all">
-                                <i class="fas fa-users w-5"></i>
-                                <span class="font-medium">Manajemen User</span>
-                            </a>
-                        @endif
                     </nav>
 
                     <div class="border-t my-8"></div>

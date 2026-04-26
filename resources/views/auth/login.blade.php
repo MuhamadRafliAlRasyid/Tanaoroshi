@@ -58,6 +58,29 @@
                 <i class="fas fa-sign-in-alt"></i>
                 <span>Masuk</span>
             </button>
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="mx-2 text-gray-400 text-xs">ATAU</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <a href="{{ route('google.redirect') }}"
+                class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition">
+
+                <!-- ICON GOOGLE -->
+                <svg class="w-5 h-5" viewBox="0 0 48 48">
+                    <path fill="#EA4335"
+                        d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.7 2.1 30.2 0 24 0 14.6 0 6.4 5.5 2.5 13.5l8 6.2C12.3 13.1 17.7 9.5 24 9.5z" />
+                    <path fill="#4285F4"
+                        d="M46.1 24.5c0-1.6-.1-2.7-.4-3.9H24v7.4h12.7c-.3 1.8-1.8 4.6-5.1 6.5l7.8 6c4.6-4.3 7.3-10.5 7.3-16z" />
+                    <path fill="#FBBC05"
+                        d="M10.5 28.3c-.6-1.8-.9-3.6-.9-5.3s.3-3.5.9-5.3l-8-6.2C.9 14.6 0 18.2 0 22s.9 7.4 2.5 10.5l8-6.2z" />
+                    <path fill="#34A853"
+                        d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.8-6c-2.1 1.5-4.8 2.5-7.4 2.5-6.3 0-11.7-3.6-13.5-8.9l-8 6.2C6.4 42.5 14.6 48 24 48z" />
+                </svg>
+
+                <span>Masuk dengan Google</span>
+            </a>
         </form>
     </div>
 @endsection

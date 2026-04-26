@@ -144,6 +144,6 @@ class Spareparts extends Model
      * =========================== */
     public function pengambilanBarangs()
     {
-        return $this->hasMany(PengambilanSparepart::class);
+        return $this->hasMany(Pengambilan::class);
     }
 }

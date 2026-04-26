@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\PengambilanSparepart;
+use App\Models\Pengambilan;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -39,7 +39,7 @@ class PengambilanExport implements WithMultipleSheets
             public function collection()
             {
                 Log::info('Collecting pengambilan data for export (Pengambil)');
-                $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
+                $query = Pengambilan::with(['user', 'bagian', 'sparepart']);
                 if ($this->id) {
                     $query->where('id', $this->id);
                 }
@@ -121,7 +121,7 @@ class PengambilanExport implements WithMultipleSheets
             public function collection()
             {
                 Log::info('Collecting pengambilan data for export (Diambil)');
-                $query = PengambilanSparepart::with(['user', 'bagian', 'sparepart']);
+                $query = Pengambilan::with(['user', 'bagian', 'sparepart']);
                 if ($this->id) {
                     $query->where('id', $this->id);
                 }

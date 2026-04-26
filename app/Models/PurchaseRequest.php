@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Models\Traits\HasHashId;
-use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PurchaseRequest extends Model
 {
-    use HasFactory,HasHashId;
+    use HasFactory, HasHashId;
+
     protected $appends = ['hashid'];
     protected $table = 'purchase_requests';
 
@@ -27,7 +27,7 @@ class PurchaseRequest extends Model
         'quotation_lead_time',
         'status',
         'last_notified_at',
-        'sparepart_id'
+        'sparepart_id'        // ← pastikan ini ada
     ];
 
     public function user()
@@ -38,5 +38,11 @@ class PurchaseRequest extends Model
     public function logs()
     {
         return $this->hasMany(RequestLog::class);
+    }
+
+
+    public function sparepart()
+    {
+        return $this->belongsTo(Spareparts::class, 'sparepart_id');   // ← PERBAIKAN DI SINI
     }
 }

@@ -7,8 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 trait HasHashId
 {
-    public function getHashidAttribute(): string
+
+    public function getHashidAttribute(): ?string
     {
+        // ✅ FIX: pastikan ID ada dulu
+        if (!$this->getKey()) {
+            return null;
+        }
+
         return app(HashIdService::class)->encode($this->getKey());
     }
 

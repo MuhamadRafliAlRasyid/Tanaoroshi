@@ -1,145 +1,163 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Pengambilan Sparepart')
+@section('title', 'Edit Pengambilan Sparepart')
 
 @section('content')
     <main class="p-6 flex flex-col items-center space-y-8">
         <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Tambah Pengambilan Sparepart</h1>
-            <form action="{{ route('pengambilan.store') }}" method="POST"
-                class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
-                @csrf
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Edit Pengambilan Sparepart</h1>
 
-                {{-- User & Bagian --}}
-                @if (Auth::user()->role === 'admin')
-                    <div>
-                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                        <select id="user_id" name="user_id" required class="w-full border rounded-md px-3 py-2">
-                            @foreach ($users as $user)
-                                <option value="{{ $user->hashid }}">{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                        <select id="bagian_id" name="bagian_id" required class="w-full border rounded-md px-3 py-2">
-                            @foreach ($bagians as $bagian)
-                                <option value="{{ $bagian->hashid }}">{{ $bagian->nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @else
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                        <input type="text" value="{{ Auth::user()->name }}" readonly
-                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                        <input type="text" value="{{ Auth::user()->bagian->nama ?? 'Tidak ada bagian' }}" readonly
-                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
-                    </div>
-                @endif
+            @if (!$pengambilanSparepart)
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-md text-center">
+                    Pengambilan Sparepart tidak ditemukan.
+                </div>
+            @else
+                <form action="{{ route('pengambilan.update', $pengambilanSparepart->hashid) }}" method="POST"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
+                    @csrf
+                    @method('PUT')
 
-                {{-- Sparepart --}}
-                {{-- Sparepart --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
+                    @if (Auth::user()->role === 'admin')
+                        <!-- User (Hanya untuk admin) -->
+                        <div>
+                            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                            <select id="user_id" name="user_id" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @forelse ($users as $user)
+                                    <option value="{{ $user->id }}"
+                                        {{ old('user_id', $pengambilanSparepart->user_id) == $user->hashid ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @empty
+                                    <option disabled>Tidak ada user tersedia</option>
+                                @endforelse
+                            </select>
+                            @error('user_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    @if ($qrSparepartHashid)
-                        <input type="hidden" name="spareparts_id" value="{{ $qrSparepartHashid }}">
-                        <input type="text" value="{{ $spareparts->first()->nama_part ?? 'Tidak ditemukan' }}" readonly
-                            class="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed">
-                        <p class="text-xs text-gray-500 mt-1">
-                            Stok Baru: {{ $spareparts->first()->jumlah_baru ?? 0 }} |
-                            Stok Bekas: {{ $spareparts->first()->jumlah_bekas ?? 0 }}
-                        </p>
+                        <!-- Bagian (Hanya untuk admin) -->
+                        <div>
+                            <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                            <select id="bagian_id" name="bagian_id" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @forelse ($bagians as $bagian)
+                                    <option value="{{ $bagian->id }}"
+                                        {{ old('bagian_id', $pengambilanSparepart->bagian_id) == $bagian->hashid ? 'selected' : '' }}>
+                                        {{ $bagian->nama }}
+                                    </option>
+                                @empty
+                                    <option disabled>Tidak ada bagian tersedia</option>
+                                @endforelse
+                            </select>
+                            @error('bagian_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     @else
-                        <select name="spareparts_id" required class="w-full border rounded-md px-3 py-2">
-                            @foreach ($spareparts as $sparepart)
-                                <option value="{{ $sparepart->hashid }}">{{ $sparepart->nama_part }}</option>
-                            @endforeach
-                        </select>
+                        <!-- Tampilkan info untuk karyawan (baca saja, tidak editable) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                            <input type="text" value="{{ $pengambilanSparepart->user->name }}" readonly
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
+                            <input type="text" value="{{ $pengambilanSparepart->bagian->nama ?? 'Tidak ada bagian' }}"
+                                readonly
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                        </div>
                     @endif
-                </div>
-                {{-- Jenis Part --}}
-                <div>
-                    <label for="part_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Part</label>
-                    <select id="part_type" name="part_type" required class="w-full border rounded-md px-3 py-2">
-                        <option value="baru">Part Baru</option>
-                        <option value="bekas">Part Bekas</option>
-                    </select>
-                </div>
 
-                {{-- Jumlah --}}
-                <div>
-                    <label for="jumlah" class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
-                    <input id="jumlah" name="jumlah" type="number" required
-                        class="w-full border rounded-md px-3 py-2" />
-                    <p id="jumlah-warning" class="text-sm text-red-600 mt-1 hidden">Jumlah melebihi stok!</p>
-                </div>
+                    <!-- Sparepart -->
+                    <div>
+                        <label for="spareparts_id" class="block text-sm font-medium text-gray-700 mb-1">Sparepart</label>
+                        <select id="spareparts_id" name="spareparts_id" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @forelse ($spareparts as $sparepart)
+                                <option value="{{ $sparepart->id }}"
+                                    {{ old('spareparts_id', $pengambilanSparepart->spareparts_id) == $sparepart->hashid ? 'selected' : '' }}>
+                                    {{ $sparepart->nama_part }} ({{ $sparepart->kode_part }})
+                                </option>
+                            @empty
+                                <option disabled>Tidak ada sparepart tersedia</option>
+                            @endforelse
+                        </select>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Stok Baru: {{ $spareparts->first()->jumlah_baru ?? 0 }} | Stok Bekas:
+                            {{ $spareparts->first()->jumlah_bekas ?? 0 }}
+                        </p>
+                        @error('spareparts_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="part_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Part</label>
+                        <select id="part_type" name="part_type" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="baru">Part Baru</option>
+                            <option value="bekas">Part Bekas</option>
+                        </select>
+                    </div>
+                    <!-- Jumlah -->
+                    <div>
+                        <label for="jumlah" class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+                        <input id="jumlah" name="jumlah" type="number" required
+                            value="{{ old('jumlah', $pengambilanSparepart->jumlah) }}"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        @error('jumlah')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                {{-- Satuan --}}
-                <div>
-                    <label for="satuan" class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                    <input id="satuan" name="satuan" type="text" required
-                        class="w-full border rounded-md px-3 py-2" />
-                </div>
+                    <!-- Satuan -->
+                    <div>
+                        <label for="satuan" class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                        <input id="satuan" name="satuan" type="text" required
+                            value="{{ old('satuan', $pengambilanSparepart->satuan) }}"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        @error('satuan')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                {{-- Keperluan --}}
-                <div class="col-span-full">
-                    <label for="keperluan" class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
-                    <input id="keperluan" name="keperluan" type="text" required
-                        class="w-full border rounded-md px-3 py-2" />
-                </div>
+                    <!-- Keperluan -->
+                    <div class="col-span-full">
+                        <label for="keperluan" class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
+                        <input id="keperluan" name="keperluan" type="text" required
+                            value="{{ old('keperluan', $pengambilanSparepart->keperluan) }}"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        @error('keperluan')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                {{-- Waktu Pengambilan --}}
-                <div class="col-span-full">
-                    <label for="waktu_pengambilan" class="block text-sm font-medium text-gray-700 mb-1">Waktu
-                        Pengambilan</label>
-                    <input id="waktu_pengambilan" name="waktu_pengambilan" type="datetime-local" required
-                        class="w-full border rounded-md px-3 py-2" />
-                </div>
+                    <!-- Waktu Pengambilan -->
+                    <div class="col-span-full">
+                        <label for="waktu_pengambilan" class="block text-sm font-medium text-gray-700 mb-1">
+                            Waktu Pengambilan
+                        </label>
+                        <input id="waktu_pengambilan" name="waktu_pengambilan" type="datetime-local" required
+                            value="{{ old('waktu_pengambilan', $pengambilanSparepart->waktu_pengambilan ? \Carbon\Carbon::parse($pengambilanSparepart->waktu_pengambilan)->format('Y-m-d\TH:i') : '') }}"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        @error('waktu_pengambilan')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                {{-- Tombol --}}
-                <div class="col-span-full flex items-center gap-4 mt-6">
-                    <button type="submit" id="submit-btn"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-                        Simpan
-                    </button>
-                    <a href="{{ route('pengambilan.index') }}"
-                        class="text-gray-600 font-semibold hover:text-blue-600">Batal</a>
-                </div>
-            </form>
+                    <div class="col-span-full flex items-center gap-4 mt-6">
+                        <button type="submit"
+                            class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <i class="fas fa-save mr-2"></i> Update
+                        </button>
+                        <a href="{{ route('pengambilan.index') }}"
+                            class="text-gray-600 font-semibold hover:text-blue-600 transition">
+                            <i class="fas fa-times mr-2"></i> Batal
+                        </a>
+                    </div>
+                </form>
+            @endif
         </section>
     </main>
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const partTypeSelect = document.getElementById('part_type');
-                const jumlahInput = document.getElementById('jumlah');
-                const submitBtn = document.getElementById('submit-btn');
-                const warningMsg = document.getElementById('jumlah-warning');
-                const stockBaru = {{ $spareparts->first()->jumlah_baru ?? 0 }};
-                const stockBekas = {{ $spareparts->first()->jumlah_bekas ?? 0 }};
-
-                function checkStock() {
-                    const jumlah = parseInt(jumlahInput.value) || 0;
-                    const stock = (partTypeSelect.value === 'baru') ? stockBaru : stockBekas;
-                    if (jumlah > stock) {
-                        warningMsg.classList.remove('hidden');
-                        submitBtn.disabled = true;
-                    } else {
-                        warningMsg.classList.add('hidden');
-                        submitBtn.disabled = false;
-                    }
-                }
-
-                partTypeSelect.addEventListener('change', checkStock);
-                jumlahInput.addEventListener('input', checkStock);
-                checkStock();
-            });
-        </script>
-    @endpush
 @endsection
