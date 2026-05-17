@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Spareparts;
-use App\Models\PurchaseRequest;
-use App\Models\Pengambilan;
-
+use App\Models\Alat;
+use App\Models\PengambilanAlat;
+use App\Models\PengembalianAlat;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
     public function index()
     {
-        $sparepartCount = Spareparts::count();
-        $purchaseRequestCount = PurchaseRequest::count();
-        $pengambilanCount = Pengambilan::count();
+        $totalAlat = Alat::count();
+        $totalDipinjam = PengambilanAlat::sum('jumlah') ?: 0;
+        $totalDikembalikan = PengembalianAlat::sum('jumlah') ?: 0;
 
-        return view('admin.dashboard', compact('sparepartCount', 'purchaseRequestCount', 'pengambilanCount'));
+        return view('admin.dashboard', [
+            'totalAlat' => $totalAlat,
+            'totalDipinjam' => $totalDipinjam,
+            'totalDikembalikan' => $totalDikembalikan,
+        ]);
     }
 }

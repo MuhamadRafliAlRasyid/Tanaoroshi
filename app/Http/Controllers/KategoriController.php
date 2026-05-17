@@ -26,12 +26,12 @@ class KategoriController extends Controller
         ->paginate(10)
         ->withQueryString(); // 🔥 biar search tetap saat pagination
 
-    return view('kategori.index', compact('data'));
+    return view('kategoris.index', compact('data'));
 }
 
     public function create()
     {
-        return view('kategori.create');
+        return view('kategoris.create');
     }
 
     public function store(Request $request)
@@ -43,7 +43,7 @@ class KategoriController extends Controller
 
         Kategori::create($data);
 
-        return redirect()->route('kategori.index')->with('success','Kategori ditambahkan');
+        return redirect()->route('kategoris.index')->with('success','Kategori ditambahkan');
     }
 
     private function findByHash($hashid)
@@ -56,13 +56,13 @@ class KategoriController extends Controller
     public function show($hashid)
     {
         $kategori = $this->findByHash($hashid);
-        return view('kategori.show', compact('kategori'));
+        return view('kategoris.show', compact('kategori'));
     }
 
     public function edit($hashid)
     {
         $kategori = $this->findByHash($hashid);
-        return view('kategori.edit', compact('kategori'));
+        return view('kategoris.edit', compact('kategori'));
     }
 
     public function update(Request $request, $hashid)
@@ -76,7 +76,7 @@ class KategoriController extends Controller
 
         $kategori->update($data);
 
-        return redirect()->route('kategori.index')->with('success','Kategori diperbarui');
+        return redirect()->route('kategoris.index')->with('success','Kategori diperbarui');
     }
 
     public function destroy($hashid)

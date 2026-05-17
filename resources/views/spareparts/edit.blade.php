@@ -3,7 +3,7 @@
 @section('title', 'Edit Sparepart')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
+    <div class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 py-6">
         <div class="w-full max-w-2xl">
             <h2 class="text-3xl font-bold text-blue-700 mb-6 text-center border-b-2 border-blue-200 pb-2">
                 <i class="fas fa-edit mr-2"></i> Edit Sparepart
@@ -20,7 +20,8 @@
             @endif
 
             <form action="{{ route('sparepart.update', $sparepart->hashid) }}" method="POST"
-                class="bg-white p-6 rounded-lg shadow-lg space-y-4" id="sparepartForm">
+                class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-4"
+                id="sparepartForm">
                 @csrf
                 @method('PUT')
 

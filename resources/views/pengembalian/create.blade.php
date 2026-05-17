@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-2xl shadow p-8">
+        <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow p-8">
             <h1 class="text-2xl font-bold mb-8">Tambah Pengembalian Sparepart</h1>
 
             <form action="{{ route('pengembalian.store') }}" method="POST">

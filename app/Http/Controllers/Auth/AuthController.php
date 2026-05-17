@@ -55,11 +55,19 @@ class AuthController extends Controller
 
     public function showLoginForm()
     {
+        // Tangkap spareparts_id (jika ada) -> simpan di session
         $sparepartsHashid = request()->query('spareparts_id');
         if ($sparepartsHashid) {
             session(['spareparts_hashid' => $sparepartsHashid]);
         }
-        return view('auth.login', compact('sparepartsHashid'));
+
+        // ✅ Tangkap alat_id (jika ada) -> simpan di session
+        $alatHashid = request()->query('alat_id');
+        if ($alatHashid) {
+            session(['alat_hashid' => $alatHashid]);
+        }
+
+        return view('auth.login', compact('sparepartsHashid', 'alatHashid'));
     }
 
     public function logout(Request $request)
@@ -70,7 +78,6 @@ class AuthController extends Controller
         return redirect('/login')->with('success', 'Anda telah logout.');
     }
 
-
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -78,20 +85,29 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Ambil dari session (bisa juga dari request/query sebagai fallback)
         $sparepartsHashid = session('spareparts_hashid') ?? $request->input('spareparts_id') ?? $request->query('spareparts_id');
+        $alatHashid = session('alat_hashid') ?? $request->input('alat_id') ?? $request->query('alat_id');
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $role = Auth::user()->role;
 
-            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts HashID: ' . ($sparepartsHashid ?? 'None'));
+            Log::info('User logged in: ' . Auth::user()->email . ', Role: ' . ($role ?? 'No role') . ', Spareparts HashID: ' . ($sparepartsHashid ?? 'None') . ', Alat HashID: ' . ($alatHashid ?? 'None'));
 
-            $request->session()->forget('spareparts_hashid');
+            // Hapus session setelah dibaca
+            $request->session()->forget(['spareparts_hashid', 'alat_hashid']);
+
+            // Redirect ke form pengambilan dengan parameter yang sesuai
+            if ($alatHashid) {
+                return redirect()->route('pengambilan_alat.create', ['alat_id' => $alatHashid])->with('success', 'Login berhasil! Silakan ambil alat.');
+            }
 
             if ($sparepartsHashid) {
                 return redirect()->route('pengambilan.create', ['spareparts_id' => $sparepartsHashid])->with('success', 'Login berhasil!');
             }
 
+            // Jika tidak ada parameter khusus, redirect sesuai role
             return match ($role) {
                 'super' => redirect('/super/dashboard')->with('success', 'Login berhasil!'),
                 'admin' => redirect('/admin/dashboard')->with('success', 'Login berhasil!'),

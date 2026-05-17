@@ -4,7 +4,8 @@
 
 @section('content')
     <main class="p-6 flex flex-col items-center space-y-8">
-        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
+        <section
+            class="w-full max-w-4xl bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h1 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Detail Pengambilan Sparepart</h1>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                 <div>

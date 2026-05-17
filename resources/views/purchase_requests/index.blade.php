@@ -5,7 +5,7 @@
 @section('content')
     <main class="p-6 flex flex-col items-center space-y-8 bg-gradient-to-br from-gray-100 to-white min-h-[calc(100vh-4rem)]">
         <section
-            class="w-full max-w-6xl bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 hover:shadow-3xl">
+            class="w-full max-w-6xl bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-2xl p-6 transform transition-all duration-300 hover:shadow-3xl">
             <h1 class="text-3xl font-bold text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-3 flex items-center">
                 <i class="fas fa-list-alt mr-2 text-indigo-600"></i> Daftar Purchase Request
             </h1>
@@ -27,7 +27,7 @@
                             class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm pr-10 placeholder-gray-400"
                             aria-label="Cari purchase request">
                         <button type="submit"
-                            class="absolute right-2 top-2 text-gray-500 hover:text-indigo-600 focus:outline-none">
+                            class="absolute right-2 top-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 focus:outline-none">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -51,7 +51,7 @@
             <!-- Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-gray-700 border-collapse">
-                    <thead class="bg-gray-100 text-xs uppercase font-semibold">
+                    <thead class="bg-gray-100 dark:bg-gray-800 text-xs uppercase font-semibold">
                         <tr>
                             <th class="px-4 py-3 text-center border-b">No</th>
                             <th class="px-4 py-3 border-b">Nama User</th>
@@ -71,7 +71,8 @@
                     </thead>
                     <tbody>
                         @forelse ($purchaseRequests as $index => $item)
-                            <tr class="border-b hover:bg-gray-50 transition-all duration-200">
+                            <tr
+                                class="border-b hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 transition-all duration-200">
                                 <td class="px-4 py-3 text-center">{{ $index + 1 }}</td>
                                 <td class="px-4 py-3">{{ $item->user->name ?? 'Unknown' }}</td>
                                 <td class="px-4 py-3 truncate max-w-xs">{{ $item->nama_part }}</td>
@@ -142,7 +143,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="15" class="px-4 py-4 text-center text-gray-500">Tidak ada data purchase
+                                <td colspan="15" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Tidak ada
+                                    data purchase
                                     request.</td>
                             </tr>
                         @endforelse

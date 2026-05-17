@@ -32,7 +32,7 @@ class SuperDashboardController extends BaseController
 
     // Cari purchase request yang statusnya masih PR (Pending Review)
     // dan belum dinotifikasi dalam 1 jam terakhir
-    $pendingRequests = PurchaseRequest::where('status', 'PR')
+    $pendingRequests = PurchaseRequest::where('status','PR')
         ->where(function($query) {
             $query->whereNull('last_notified_at')
                   ->orWhere('last_notified_at', '<', now()->subHour());

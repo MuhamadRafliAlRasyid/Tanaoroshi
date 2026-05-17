@@ -3,7 +3,7 @@
 @section('title', 'Daftar Pengambilan Sparepart')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 py-4">
+    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 dark:bg-gray-800 py-4">
         <div class="w-full max-w-5xl p-4">
             <h2 class="text-3xl font-bold text-green-700 mb-6 text-center border-b-2 border-green-200 pb-2">
                 <i class="fas fa-list mr-2"></i> Daftar Pengambilan Sparepart
@@ -34,7 +34,7 @@
                 <i class="fas fa-plus mr-2"></i> Tambah Pengambilan
             </a>
 
-            <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg">
                 <table class="w-full text-sm text-gray-700">
                     <thead class="bg-gray-200">
                         <tr>
@@ -51,7 +51,7 @@
                     </thead>
                     <tbody>
                         @forelse ($pengambilanSpareparts as $index => $item)
-                            <tr class="border-b hover:bg-gray-50 transition duration-200">
+                            <tr class="border-b hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 transition duration-200">
                                 <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
                                 <td class="px-4 py-2">{{ $item->user->name ?? 'Tidak diketahui' }}</td>
                                 <td class="px-4 py-2">{{ $item->bagian->nama ?? 'Tidak diketahui' }}</td>
@@ -87,7 +87,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-4 text-center text-gray-500">Tidak ada data pengambilan.
+                                <td colspan="9" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Tidak ada
+                                    data pengambilan.
                                 </td>
                             </tr>
                         @endforelse

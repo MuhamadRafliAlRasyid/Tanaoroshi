@@ -1,9 +1,9 @@
 @extends('layouts.app')
 @section('title', 'Detail Sparepart')
 @section('content')
-    <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
+    <div class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 py-6">
         <div class="w-full max-w-3xl">
-            <div class="bg-white shadow-xl rounded-lg p-6">
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 shadow-xl rounded-lg p-6">
                 <h2 class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-2 border-indigo-200 pb-2 relative">
                     <i class="fas fa-info-circle mr-2"></i> Detail Sparepart
                     <a href="{{ route('sparepart.edit', $sparepart->hashid) }}"
@@ -90,7 +90,8 @@
                     </div>
 
                     <!-- Purchase Date -->
-                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                         <p class="text-gray-600 font-semibold flex items-center" title="Tanggal pembelian">
                             <i class="fas fa-calendar-alt mr-2"></i> Purchase Date
                         </p>
@@ -119,7 +120,7 @@
 
                     <!-- QR Code -->
                     <div
-                        class="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center col-span-1 md:col-span-2">
+                        class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center justify-center col-span-1 md:col-span-2">
                         @if ($sparepart->qr_code && file_exists(storage_path('app/public/' . $sparepart->qr_code)))
                             <img src="{{ asset('storage/' . $sparepart->qr_code) }}" alt="QR Code"
                                 class="w-32 h-32 object-contain border-2 border-gray-300 rounded-lg hover:shadow-md transition-shadow">

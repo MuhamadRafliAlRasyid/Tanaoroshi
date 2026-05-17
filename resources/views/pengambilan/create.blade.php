@@ -4,7 +4,8 @@
 
 @section('content')
     <main class="p-6 flex flex-col items-center space-y-8">
-        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
+        <section
+            class="w-full max-w-4xl bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h1 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Edit Pengambilan Sparepart</h1>
 
             @if (!$pengambilanSparepart)
@@ -60,13 +61,13 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
                             <input type="text" value="{{ $pengambilanSparepart->user->name }}" readonly
-                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
                             <input type="text" value="{{ $pengambilanSparepart->bagian->nama ?? 'Tidak ada bagian' }}"
                                 readonly
-                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed">
                         </div>
                     @endif
 

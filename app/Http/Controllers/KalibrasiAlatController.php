@@ -7,6 +7,7 @@ use App\Models\KalibrasiAlat;
 use App\Services\HashIdService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KalibrasiAlatController extends Controller
 {
@@ -32,7 +33,7 @@ class KalibrasiAlatController extends Controller
 
         $data = $query->latest()->paginate(10)->withQueryString();
 
-        return view('kalibrasi.index', compact('data'));
+        return view('kalibrasis.index', compact('data'));
     }
 
     /* ================= CREATE ================= */
@@ -41,7 +42,7 @@ class KalibrasiAlatController extends Controller
     {
         $alat = Alat::findOrFail($this->decode($hashid));
 
-        return view('kalibrasi.create', compact('alat'));
+        return view('kalibrasis.create', compact('alat'));
     }
 
     /* ================= STORE ================= */
@@ -62,57 +63,61 @@ public function store(Request $request, $hashid)
         $tanggalKalibrasi = Carbon::parse($validated['tanggal_kalibrasi']);
         $masaBerlakuBaru = Carbon::parse($validated['masa_berlaku_baru']);
 
-        // 🔥 Ambil kalibrasi terakhir
         $lastKalibrasi = KalibrasiAlat::where('alat_id', $alat->id)
             ->latest('tanggal_kalibrasi')
             ->first();
 
-        // ❌ tidak boleh mundur
         if ($lastKalibrasi && $tanggalKalibrasi->lt($lastKalibrasi->tanggal_kalibrasi)) {
             return back()->withErrors([
                 'tanggal_kalibrasi' => 'Tanggal tidak boleh lebih lama dari sebelumnya'
             ])->withInput();
         }
 
-        // ❌ masa berlaku harus setelah kalibrasi
         if ($masaBerlakuBaru->lte($tanggalKalibrasi)) {
             return back()->withErrors([
                 'masa_berlaku_baru' => 'Masa berlaku harus setelah tanggal kalibrasi'
             ])->withInput();
         }
 
-        // ❌ masa berlaku harus lebih besar dari sebelumnya
         if ($lastKalibrasi && $masaBerlakuBaru->lte($lastKalibrasi->masa_berlaku_baru)) {
             return back()->withErrors([
                 'masa_berlaku_baru' => 'Harus lebih besar dari masa berlaku sebelumnya'
             ])->withInput();
         }
 
-        // ✅ simpan
         $kalibrasi = KalibrasiAlat::create([
             'alat_id' => $alat->id,
             ...$validated
         ]);
 
-        // ✅ update alat (karena ini pasti data terbaru)
         $alat->update([
             'masa_berlaku' => $validated['masa_berlaku_baru'],
             'last_notified_at' => null
         ]);
 
-        return redirect()->route('kalibrasi.show', $kalibrasi->hashid)
+        // ✅ Tandai notifikasi lama sebagai sudah dibaca
+        DB::table('notifications')
+            ->where('data->alat_id', $alat->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return redirect()->route('kalibrasis.show', $kalibrasi->hashid)
             ->with('success', 'Kalibrasi berhasil disimpan');
     }
+
 
     /* ================= SHOW ================= */
 
     public function show($hashid)
-{
-    $id = app(\App\Services\HashIdService::class)->decode($hashid);
-    $alat = \App\Models\Alat::with(['kategori', 'kalibrasis'])
-        ->findOrFail($id);
+    {
+        $id = app(HashIdService::class)->decode($hashid);
+        abort_if(!$id, 404);
 
-}
+        $data = KalibrasiAlat::with('alat')->findOrFail($id);
+        // $data sekarang berisi satu record kalibrasi beserta relasi alatnya
+
+        return view('kalibrasis.show', compact('data'));
+    }
 
     /* ================= EDIT ================= */
 
@@ -121,12 +126,12 @@ public function store(Request $request, $hashid)
         $data = KalibrasiAlat::with('alat')
             ->findOrFail($this->decode($hashid));
 
-        return view('kalibrasi.edit', compact('data'));
+        return view('kalibrasis.edit', compact('data'));
     }
 
     /* ================= UPDATE ================= */
 
-   public function update(Request $request, $hashid)
+    public function update(Request $request, $hashid)
     {
         $data = KalibrasiAlat::with('alat')->findOrFail($this->decode($hashid));
         $alat = $data->alat;
@@ -141,37 +146,31 @@ public function store(Request $request, $hashid)
         $tanggalKalibrasi = Carbon::parse($validated['tanggal_kalibrasi']);
         $masaBerlakuBaru = Carbon::parse($validated['masa_berlaku_baru']);
 
-        // 🔥 Ambil kalibrasi lain (kecuali dirinya sendiri)
         $lastKalibrasi = KalibrasiAlat::where('alat_id', $alat->id)
             ->where('id', '!=', $data->id)
             ->latest('tanggal_kalibrasi')
             ->first();
 
-        // ❌ tidak boleh mundur
         if ($lastKalibrasi && $tanggalKalibrasi->lt($lastKalibrasi->tanggal_kalibrasi)) {
             return back()->withErrors([
                 'tanggal_kalibrasi' => 'Tanggal tidak boleh lebih lama dari data lain'
             ])->withInput();
         }
 
-        // ❌ masa berlaku harus setelah tanggal kalibrasi
         if ($masaBerlakuBaru->lte($tanggalKalibrasi)) {
             return back()->withErrors([
                 'masa_berlaku_baru' => 'Masa berlaku harus setelah tanggal kalibrasi'
             ])->withInput();
         }
 
-        // ❌ masa berlaku harus lebih besar dari data lain
         if ($lastKalibrasi && $masaBerlakuBaru->lte($lastKalibrasi->masa_berlaku_baru)) {
             return back()->withErrors([
                 'masa_berlaku_baru' => 'Harus lebih besar dari data sebelumnya'
             ])->withInput();
         }
 
-        // ✅ update data
         $data->update($validated);
 
-        // 🔥 UPDATE ALAT HANYA JIKA DIA DATA TERBARU
         $latest = KalibrasiAlat::where('alat_id', $alat->id)
             ->latest('tanggal_kalibrasi')
             ->first();
@@ -180,9 +179,15 @@ public function store(Request $request, $hashid)
             $alat->update([
                 'masa_berlaku' => $validated['masa_berlaku_baru']
             ]);
+
+            // ✅ Tandai notifikasi lama sebagai sudah dibaca
+            DB::table('notifications')
+                ->where('data->alat_id', $alat->id)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
         }
 
-        return redirect()->route('kalibrasi.show', $data->hashid)
+        return redirect()->route('kalibrasis.show', $data->hashid)
             ->with('success', 'Kalibrasi berhasil diupdate');
     }
 
@@ -210,7 +215,7 @@ public function store(Request $request, $hashid)
             ]);
         }
 
-        return redirect()->route('kalibrasi.index')
+        return redirect()->route('kalibrasis.index')
             ->with('success', 'Data kalibrasi dihapus');
     }
 }

@@ -3,7 +3,7 @@
 @section('title', 'Deleted Spareparts')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 py-4">
+    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-100 dark:bg-gray-800 py-4">
         <div class="w-full max-w-5xl p-4">
             <h2 class="text-3xl font-bold text-red-700 mb-6 text-center border-b-2 border-red-200 pb-2">
                 <i class="fas fa-trash-alt mr-2"></i> Daftar Sparepart Terhapus
@@ -19,13 +19,13 @@
             <!-- Tombol Kembali -->
             <div class="mb-4 text-left">
                 <a href="{{ route('sparepart.index') }}"
-                    class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                    class="bg-gray-50 dark:bg-gray-900 dark:bg-gray-9000 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
             </div>
 
             <!-- Tabel Data Terhapus -->
-            <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg">
                 <table class="w-full text-left">
                     <thead class="bg-gray-200">
                         <tr>
@@ -39,7 +39,7 @@
                     </thead>
                     <tbody>
                         @forelse ($trashedSpareparts as $sparepart)
-                            <tr class="border-b hover:bg-gray-50 transition duration-200">
+                            <tr class="border-b hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 transition duration-200">
                                 <td class="py-3 px-4">{{ $sparepart->id }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->nama_part }}</td>
                                 <td class="py-3 px-4">{{ $sparepart->model }}</td>
@@ -73,7 +73,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-4 text-center text-gray-500">Tidak ada sparepart terhapus.</td>
+                                <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">Tidak ada
+                                    sparepart terhapus.</td>
                             </tr>
                         @endforelse
                     </tbody>

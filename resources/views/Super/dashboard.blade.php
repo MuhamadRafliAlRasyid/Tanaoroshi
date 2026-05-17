@@ -4,7 +4,8 @@
 
 @section('content')
     <main class="p-6 flex flex-col items-center space-y-8">
-        <section class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
+        <section
+            class="w-full max-w-4xl bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h1 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Dashboard Super</h1>
 
             <!-- Statistik atau Ringkasan -->
@@ -39,15 +40,17 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h2>
                 <div class="space-y-4">
                     @forelse ($recentLogs as $log)
-                        <div class="bg-gray-50 p-4 rounded-lg shadow hover:shadow-md transition">
+                        <div
+                            class="bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md transition">
                             <p class="text-gray-700"><strong>Aksi:</strong> {{ $log->action }}</p>
                             <p class="text-gray-600"><strong>Permintaan:</strong>
                                 {{ $log->purchaseRequest->nama_part ?? 'N/A' }}</p>
-                            <p class="text-gray-500 text-sm">Oleh: {{ $log->approvedBy->name ?? 'Unknown' }} pada
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Oleh:
+                                {{ $log->approvedBy->name ?? 'Unknown' }} pada
                                 {{ $log->created_at->format('d M Y H:i') }}</p>
                         </div>
                     @empty
-                        <p class="text-gray-500 text-center">Tidak ada aktivitas terbaru.</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-center">Tidak ada aktivitas terbaru.</p>
                     @endforelse
                 </div>
             </div>

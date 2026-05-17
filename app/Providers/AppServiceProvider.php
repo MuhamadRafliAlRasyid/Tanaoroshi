@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\Spareparts;
 use App\Events\SparepartUpdated;
-use App\Observers\SparepartObserver;
 use App\Listeners\SyncToDriveListener;
+use App\Models\Spareparts;
+use App\Observers\SparepartObserver;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,7 +27,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
 
-
+Route::bind('user', function ($value) {
+        $id = app(\App\Services\HashIdService::class)->decode($value);
+        abort_if(!$id, 404);
+        return User::findOrFail($id);
+    });
     }
 
     /**

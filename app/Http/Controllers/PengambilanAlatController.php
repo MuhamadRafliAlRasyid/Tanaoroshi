@@ -12,19 +12,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
 
 class PengambilanAlatController extends Controller
 {
-    /* ================= HASH ================= */
-
     protected function resolveHashid($hashid)
     {
         $id = app(HashIdService::class)->decode($hashid);
         if (!$id) abort(404);
         return $id;
     }
-
-    /* ================= INDEX ================= */
 
     public function index(Request $request)
     {
@@ -36,7 +35,6 @@ class PengambilanAlatController extends Controller
 
         if ($request->search) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('waktu_pengambilan', 'like', "%{$search}%")
                     ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"))
@@ -46,17 +44,15 @@ class PengambilanAlatController extends Controller
         }
 
         $data = $query->latest()->paginate(10)->withQueryString();
-
         return view('pengambilan_alat.index', compact('data'));
     }
-
-    /* ================= CREATE ================= */
 
     public function create()
     {
         $users = User::all();
         $bagians = Bagian::all();
         $alats = Alat::all();
+        $alatId = request('alat_id');
 
         if (Auth::user()->role !== 'admin') {
             $users = User::where('id', Auth::id())->get();
@@ -65,208 +61,209 @@ class PengambilanAlatController extends Controller
                 : collect();
         }
 
-        return view('pengambilan_alat.create', compact('users','bagians','alats'));
+        return view('pengambilan_alat.create', compact('users', 'bagians', 'alats', 'alatId'));
     }
-
-    /* ================= STORE ================= */
 
     public function store(Request $request)
-{
-    Log::info('START STORE PENGAMBILAN ALAT', [
-        'request' => $request->all()
-    ]);
+    {
+        Log::info('START STORE PENGAMBILAN ALAT', ['request' => $request->all()]);
 
-    try {
-
-        if (Auth::user()->role !== 'admin') {
-            $request->merge([
-                'user_id' => Auth::id(),
-                'bagian_id' => Auth::user()->bagian_id ?? 1,
-            ]);
-        }
-
-        $validated = $request->validate([
-
-            'bagian_id' => 'required|exists:bagian,id',
-            'alat_id' => 'required',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:20',
-            'keperluan' => 'required|string|max:255',
-            'waktu_pengambilan' => 'required|date',
-        ]);
-        $validated['user_id'] = Auth::id();
-
-        Log::info('VALIDATED DATA', $validated);
-
-        DB::transaction(function () use ($request, &$validated) {
-
-            Log::info('MASUK TRANSACTION');
-
-            $alatId = $this->resolveHashid($request->alat_id);
-            Log::info('ALAT ID', ['alat_id' => $alatId]);
-
-            $alat = Alat::findOrFail($alatId);
-            Log::info('DATA ALAT', ['stok' => $alat->jumlah]);
-
-            // 🔥 VALIDASI STOK
-            if ($alat->jumlah < $validated['jumlah']) {
-                Log::warning('STOK TIDAK CUKUP');
-                throw new \Exception('Stok alat tidak mencukupi');
+        try {
+            if (Auth::user()->role !== 'admin') {
+                $request->merge([
+                    'user_id'   => Auth::id(),
+                    'bagian_id' => Auth::user()->bagian_id ?? null,
+                ]);
             }
 
-            // 🔥 KURANGI STOK
-            $alat->decrement('jumlah', $validated['jumlah']);
-            Log::info('STOK DIKURANGI', [
-                'jumlah_diambil' => $validated['jumlah'],
-                'sisa_stok' => $alat->fresh()->jumlah
-            ]);
-
-            $validated['alat_id'] = $alatId;
-            $validated['status'] = 'dipinjam';
-
-            $data = PengambilanAlat::create($validated);
-
-            Log::info('DATA BERHASIL DISIMPAN', [
-                'id' => $data->id
-            ]);
-        });
-
-        Log::info('STORE SUCCESS');
-
-        return redirect()->route('pengambilan_alat.index')
-            ->with('success', 'Pengambilan alat berhasil ditambahkan.');
-
-    } catch (\Throwable $e) {
-
-        Log::error('ERROR STORE PENGAMBILAN ALAT', [
-            'message' => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => $e->getFile()
+            $validated = $request->validate([
+            'user_id'            => 'required|exists:users,id',
+            'bagian_id'          => 'required|exists:bagian,id',
+            'alat_id'            => 'required|string',
+            'nama_peminjam'      => 'nullable|string|max:255',   // ← tambahkan
+            'jumlah'             => 'required|integer|min:1',
+            'satuan'             => 'required|string|max:20',
+            'keperluan'          => 'required|string|max:255',
+            'waktu_pengambilan'  => 'required|date',
+            'foto'               => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        return back()->with('error', 'Terjadi error: ' . $e->getMessage());
-    }
-}
+            if ($request->hasFile('foto')) {
+                $validated['foto'] = $this->uploadFotoTransaksi($request->file('foto'), 'pengambilan');
+            }
 
-    /* ================= SHOW ================= */
+            Log::info('VALIDATED DATA', $validated);
+
+            DB::transaction(function () use ($validated) {
+                $alatId = $this->resolveHashid($validated['alat_id']);
+                $alat = Alat::findOrFail($alatId);
+
+                if ($alat->jumlah < $validated['jumlah']) {
+                    throw new \Exception('Stok alat tidak mencukupi');
+                }
+
+                $alat->decrement('jumlah', $validated['jumlah']);
+
+                $validated['alat_id'] = $alatId;
+                $validated['status']   = 'dipinjam';
+
+                PengambilanAlat::create($validated);
+            });
+
+            return redirect()->route('pengambilan_alat.index')
+                ->with('success', 'Pengambilan alat berhasil ditambahkan.');
+        } catch (\Throwable $e) {
+            Log::error('ERROR STORE PENGAMBILAN ALAT', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile()
+            ]);
+            return back()->withInput()->with('error', 'Terjadi error: ' . $e->getMessage());
+        }
+    }
 
     public function show($hashid)
     {
         $data = PengambilanAlat::with(['user','bagian','alat'])
             ->findOrFail($this->resolveHashid($hashid));
-
         if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
             abort(403);
         }
-
         return view('pengambilan_alat.show', compact('data'));
     }
-
-    /* ================= EXPORT PDF ================= */
 
     public function exportPdf($hashid = null)
     {
         if ($hashid) {
             $data = PengambilanAlat::with(['user','alat'])
                 ->findOrFail($this->resolveHashid($hashid));
-
             $list = collect([$data]);
         } else {
             $list = PengambilanAlat::with(['user','alat'])->get();
         }
-
         $pdf = Pdf::loadView('pengambilan_alat.export-pdf', compact('list'));
-
         return $pdf->download('pengambilan_alat.pdf');
     }
-
-    /* ================= EDIT ================= */
 
     public function edit($hashid)
     {
         $data = PengambilanAlat::findOrFail($this->resolveHashid($hashid));
+        if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
+            abort(403);
+        }
+        $users   = User::all();
+        $bagians = Bagian::all();
+        $alats   = Alat::all();
+        return view('pengambilan_alat.edit', compact('data','users','bagians','alats'));
+    }
 
+    public function update(Request $request, $hashid)
+    {
+        $data = PengambilanAlat::findOrFail($this->resolveHashid($hashid));
         if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
             abort(403);
         }
 
-        $users = User::all();
-        $bagians = Bagian::all();
-        $alats = Alat::all();
+        $validated = $request->validate([
+        'bagian_id'          => 'required|exists:bagian,id',
+        'alat_id'            => 'required|string',
+        'nama_peminjam'      => 'nullable|string|max:255',   // ← tambahkan
+        'jumlah'             => 'required|integer|min:1',
+        'satuan'             => 'required|string|max:20',
+        'keperluan'          => 'required|string|max:255',
+        'waktu_pengambilan'  => 'required|date',
+        'foto'               => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
 
-        return view('pengambilan_alat.edit', compact('data','users','bagians','alats'));
-    }
-
-    /* ================= UPDATE ================= */
-
-    public function update(Request $request, $hashid)
-{
-    $data = PengambilanAlat::findOrFail($this->resolveHashid($hashid));
-
-    if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
-        abort(403);
-    }
-
-    // ❌ HAPUS user_id dari validasi
-    $validated = $request->validate([
-        'bagian_id' => 'required|exists:bagian,id',
-        'alat_id' => 'required',
-        'jumlah' => 'required|integer|min:1',
-        'satuan' => 'required|string|max:20',
-        'keperluan' => 'required',
-        'waktu_pengambilan' => 'required|date',
-    ]);
-
-    // 🔥 SET USER DARI AUTH (AMAN)
-    $validated['user_id'] = Auth::id();
-
-    DB::transaction(function () use ($request, $data, &$validated) {
-
-        $oldAlat = Alat::findOrFail($data->alat_id);
-        $newAlatId = $this->resolveHashid($request->alat_id);
-        $newAlat = Alat::findOrFail($newAlatId);
-
-        // 🔥 BALIKIN STOK LAMA
-        $oldAlat->increment('jumlah', $data->jumlah);
-
-        // 🔥 CEK STOK BARU
-        if ($newAlat->jumlah < $validated['jumlah']) {
-            throw new \Exception('Stok alat tidak cukup');
+        if ($request->hasFile('foto')) {
+            if ($data->foto) {
+                $this->deleteFotoTransaksi($data->foto, 'pengambilan');
+            }
+            $validated['foto'] = $this->uploadFotoTransaksi($request->file('foto'), 'pengambilan');
         }
 
-        // 🔥 KURANGI STOK BARU
-        $newAlat->decrement('jumlah', $validated['jumlah']);
+        $validated['user_id'] = $data->user_id;
 
-        $validated['alat_id'] = $newAlatId;
+        DB::transaction(function () use ($data, $validated) {
+            $oldAlat   = Alat::findOrFail($data->alat_id);
+            $newAlatId = $this->resolveHashid($validated['alat_id']);
+            $newAlat   = Alat::findOrFail($newAlatId);
 
-        $data->update($validated);
-    });
+            $oldAlat->increment('jumlah', $data->jumlah);
 
-    return redirect()->route('pengambilan_alat.show', $data->hashid)
-        ->with('success', 'Data berhasil diperbarui');
-}
+            if ($newAlat->jumlah < $validated['jumlah']) {
+                throw new \Exception('Stok alat tidak mencukupi');
+            }
 
-    /* ================= DELETE ================= */
+            $newAlat->decrement('jumlah', $validated['jumlah']);
+
+            $validated['alat_id'] = $newAlatId;
+            $data->update($validated);
+        });
+
+        return redirect()->route('pengambilan_alat.show', $data->hashid)
+            ->with('success', 'Data berhasil diperbarui');
+    }
 
     public function destroy($hashid)
     {
         $data = PengambilanAlat::findOrFail($this->resolveHashid($hashid));
-
         if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
             abort(403);
         }
-
         DB::transaction(function () use ($data) {
             $alat = Alat::find($data->alat_id);
-
             if ($alat) {
                 $alat->increment('jumlah', $data->jumlah);
             }
-
+            if ($data->foto) {
+                $this->deleteFotoTransaksi($data->foto, 'pengambilan');
+            }
             $data->delete();
         });
-
         return redirect()->route('pengambilan_alat.index')
             ->with('success','Data berhasil dihapus');
+    }
+
+    protected function uploadFotoTransaksi($file, string $folder): string
+    {
+        // 1. Jika driver GD tidak tersedia, simpan file mentah
+        if (!class_exists(GdDriver::class)) {
+            $filename = date('YmdHis') . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs($folder, $file, $filename);
+            Storage::disk('public')->putFileAs($folder . '/thumb', $file, $filename);
+            return $filename;
+        }
+
+        // 2. Jika GD tersedia, resize & kompres
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file);
+
+        $filename = date('YmdHis') . '_' . Str::random(10) . '.webp';
+
+        // Original (lebar maks 1200px)
+        Storage::disk('public')->put(
+            "$folder/$filename",
+            $image->scaleDown(width: 1200)->toWebp(80)->toFilePointer()
+        );
+
+        // Thumbnail (200x200 crop)
+        Storage::disk('public')->put(
+            "$folder/thumb_$filename",
+            $image->cover(200, 200)->toWebp(60)->toFilePointer()
+        );
+
+        return $filename;
+    }
+
+    /**
+     * Hapus foto asli dan thumbnail dari storage.
+     */
+    protected function deleteFotoTransaksi($filename, string $folder): void
+    {
+        if ($filename) {
+            Storage::disk('public')->delete("$folder/$filename");
+            Storage::disk('public')->delete("$folder/thumb_$filename");
+        }
     }
 }

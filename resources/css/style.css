@@ -6,8 +6,9 @@
 }
 
 body {
-    font-family: 'Inter', Arial, sans-serif; /* Konsisten dengan layout sebelumnya */
-    background-color: #f3f4f6; /* Atau gunakan bg-gray-100 dari Tailwind */
+    font-family:
+        "Inter", Arial, sans-serif; /* Konsisten dengan layout sebelumnya */
+    background-color: #f3f4f6; /* Atau gunakan bg-gray-100 dark:bg-gray-800 dari Tailwind */
     color: #374151; /* Warna teks default Tailwind */
     line-height: 1.5;
 }
@@ -18,7 +19,9 @@ body {
     padding: 24px; /* Menggunakan nilai Tailwind-like */
     background-color: white;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* Shadow lebih halus */
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.08); /* Shadow lebih halus */
     animation: fade-in 0.5s ease-out; /* Animasi masuk */
 }
 
@@ -40,7 +43,9 @@ select {
     border-radius: 6px;
     border: 1px solid #d1d5db; /* Warna border Tailwind */
     font-size: 0.875rem; /* Text-sm dari Tailwind */
-    transition: border-color 0.3s, box-shadow 0.3s; /* Efek transisi */
+    transition:
+        border-color 0.3s,
+        box-shadow 0.3s; /* Efek transisi */
 }
 
 input[type="email"]:focus,
@@ -61,7 +66,9 @@ button {
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s; /* Efek hover */
+    transition:
+        background-color 0.3s,
+        transform 0.2s; /* Efek hover */
 }
 
 button:hover {
@@ -95,22 +102,50 @@ button:focus {
 
 /* Animasi */
 @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 @keyframes bounce-slow {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
-.animate-fade-in { animation: fade-in 0.5s ease-out; }
-.animate-fade-in-up { animation: fade-in-up 0.5s ease-out; }
-.animate-bounce-slow { animation: bounce-slow 2s infinite; }
-.animate-pulse { animation: pulse 1.5s infinite; }
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out;
+}
+.animate-bounce-slow {
+    animation: bounce-slow 2s infinite;
+}
+.animate-pulse {
+    animation: pulse 1.5s infinite;
+}

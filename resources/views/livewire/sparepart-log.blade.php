@@ -2,8 +2,8 @@
     <h2 class="text-xl font-bold mb-4">Log Sparepart</h2>
 
     <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border rounded-lg">
-            <thead class="bg-gray-100">
+        <table class="min-w-full bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 border rounded-lg">
+            <thead class="bg-gray-100 dark:bg-gray-800">
                 <tr>
                     <th class="p-2 border">Tanggal</th>
                     <th class="p-2 border">User</th>
@@ -44,7 +44,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="p-4 text-center text-gray-500">
+                        <td colspan="7" class="p-4 text-center text-gray-500 dark:text-gray-400">
                             Tidak ada data
                         </td>
                     </tr>

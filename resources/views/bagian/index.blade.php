@@ -3,81 +3,69 @@
 @section('title', 'Daftar Bagian')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-100 to-white py-4">
-        <div class="w-full max-w-5xl p-4">
-            <h2
-                class="text-3xl font-bold text-indigo-700 mb-6 text-center border-b-4 border-indigo-200 pb-2 animate-bounce-slow">
-                <i class="fas fa-list mr-2 text-indigo-600"></i> Daftar Bagian
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-building text-amber-500"></i> Daftar Bagian
             </h2>
-
-            @if (session('success'))
-                <div
-                    class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-md text-center animate-fade-in">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            <!-- Form Pencarian -->
-            <div class="mb-6 flex items-center space-x-2 w-full">
-                <form action="{{ route('bagians.index') }}" method="GET" class="w-full flex items-center space-x-2">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama bagian..."
-                        class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                    <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 py-1 shadow-md transition duration-200">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
-
-            <a href="{{ route('bagians.create') }}"
-                class="mb-6 inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
-                <i class="fas fa-plus mr-2"></i> Tambah Bagian
+            <a href="{{ route('bagian.create') }}"
+                class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition shadow-md shadow-amber-200">
+                <i class="fas fa-plus"></i> Tambah Bagian
             </a>
+        </div>
 
-            <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
-                <table class="w-full text-sm text-gray-700">
-                    <thead class="bg-gray-200">
-                        <tr>
-                            <th class="px-4 py-2 text-center font-medium">No</th>
-                            <th class="px-4 py-2 font-medium">Nama Bagian</th>
-                            <th class="px-4 py-2 text-center font-medium">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($bagians as $index => $bagian)
-                            <tr class="border-b hover:bg-gray-50 transition duration-200">
-                                <td class="px-4 py-2 text-center">{{ $index + 1 }}</td>
-                                <td class="px-4 py-2 text-gray-900">{{ $bagian->nama }}</td>
-                                <td class="px-4 py-2 text-center flex justify-center space-x-2">
-                                    <a href="{{ route('bagians.edit', $bagian->hashid) }}"
-                                        class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-all duration-200 transform hover:scale-105 relative group"
-                                        title="Edit Bagian">
-                                        <i class="fas fa-edit mr-1"></i> Edit
-                                    </a>
-                                    <form action="{{ route('bagians.destroy', $bagian->hashid) }}" method="POST"
-                                        class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-all duration-200 transform hover:scale-105 relative group"
-                                            title="Hapus Bagian" onclick="return confirm('Yakin ingin menghapus?')">
-                                            <i class="fas fa-trash mr-1"></i> Hapus
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="px-4 py-4 text-center text-gray-500">Tidak ada data bagian.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        @if (session('success'))
+            <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 4000)"
+                class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-3 rounded-xl flex items-center justify-between">
+                <span>{{ session('success') }}</span>
+                <button @click="show = false" class="text-emerald-500 hover:text-emerald-800">&times;</button>
             </div>
+        @endif
 
-            <div class="mt-6 text-center">
-                {{ $bagians->links('pagination::tailwind') }}
+        <form method="GET" class="mb-8">
+            <div class="relative max-w-md">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama bagian..."
+                    class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 pl-11 bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
             </div>
+        </form>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @forelse ($bagians as $bagian)
+                <div
+                    class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-md border border-amber-100 hover:shadow-xl hover:border-amber-300 transition-all duration-300 p-6 flex flex-col items-center text-center group">
+                    <div
+                        class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-4 text-amber-600 group-hover:bg-amber-200 transition">
+                        <i class="fas fa-building text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 text-lg mb-1">{{ $bagian->nama }}</h3>
+                    <p class="text-gray-400 text-xs mb-4">ID: {{ $bagian->hashid }}</p>
+
+                    <div class="flex gap-2 mt-auto w-full">
+                        <a href="{{ route('bagian.edit', $bagian->hashid) }}"
+                            class="flex-1 bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center justify-center gap-1">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form action="{{ route('bagian.destroy', $bagian->hashid) }}" method="POST"
+                            onsubmit="return confirm('Yakin ingin menghapus bagian ini?')" class="flex-1">
+                            @csrf @method('DELETE')
+                            <button type="submit"
+                                class="w-full bg-red-100 text-red-700 hover:bg-red-200 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center justify-center gap-1">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-full text-center py-16 text-gray-400">
+                    <i class="fas fa-building text-5xl mb-4 block"></i>
+                    <p class="text-lg">Tidak ada data bagian.</p>
+                </div>
+            @endforelse
+        </div>
+
+        <div class="mt-10 flex justify-center">
+            {{ $bagians->links() }}
         </div>
     </div>
 @endsection

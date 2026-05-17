@@ -18,9 +18,9 @@
             </div>
         @endif
 
-        <div class="bg-white rounded-2xl shadow overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow overflow-hidden">
             <table class="w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-gray-50 dark:bg-gray-900 dark:bg-gray-900">
                     <tr>
                         <th class="px-6 py-4 text-left">Sparepart</th>
                         <th class="px-6 py-4 text-left">User</th>
@@ -33,7 +33,7 @@
                 </thead>
                 <tbody class="divide-y">
                     @forelse ($pengembalians as $item)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900">
                             <td class="px-6 py-4">{{ $item->sparepart->nama_part ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->user->name ?? '-' }}</td>
                             <td class="px-6 py-4 text-center font-semibold">{{ $item->jumlah_dikembalikan }}</td>
@@ -58,7 +58,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-12 text-gray-500">
+                            <td colspan="7" class="text-center py-12 text-gray-500 dark:text-gray-400">
                                 Belum ada data pengembalian sparepart.
                             </td>
                         </tr>

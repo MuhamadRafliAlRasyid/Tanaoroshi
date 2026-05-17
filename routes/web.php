@@ -1,27 +1,27 @@
 
     <?php
 
-    use App\Exports\PengambilanExport;
-    use App\Http\Controllers\AdminDashboardController;
-    use App\Http\Controllers\AlatsController;
-    use App\Http\Controllers\Auth\AuthController;
-    use App\Http\Controllers\Auth\GoogleController;
-    use App\Http\Controllers\BagiansController;
-    use App\Http\Controllers\KalibrasiAlatController;
-    use App\Http\Controllers\KaryawanDashboardController;
-    use App\Http\Controllers\KategoriController;
-    use App\Http\Controllers\PengambilanAlatController;
-    use App\Http\Controllers\PengambilanSparepartController;
-    use App\Http\Controllers\PengembalianAlatController;
-    use App\Http\Controllers\PengembalianController;
-    use App\Http\Controllers\PurchaseRequestController;
-    use App\Http\Controllers\SparepartsController;
-    use App\Http\Controllers\SuperDashboardController;
-    use App\Http\Controllers\UserController;
-    use Illuminate\Support\Facades\Auth;
-    use Illuminate\Support\Facades\Route;
-    use Livewire\Volt\Volt;
-    use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PengambilanExport;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AlatsController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\BagiansController;
+use App\Http\Controllers\KalibrasiAlatController;
+use App\Http\Controllers\KaryawanDashboardController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PengambilanAlatController;
+use App\Http\Controllers\PengambilanSparepartController;
+use App\Http\Controllers\PengembalianAlatController;
+use App\Http\Controllers\PengembalianController;
+use App\Http\Controllers\PurchaseRequestController;
+use App\Http\Controllers\SparepartsController;
+use App\Http\Controllers\SuperDashboardController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
+use Maatwebsite\Excel\Facades\Excel;
 
     /*
     |--------------------------------------------------------------------------
@@ -35,8 +35,9 @@
     */
 
     Route::get('/', function () {
-        return view('welcome');
-    })->name('home');
+    return view('landing');
+})->name('landing');
+Route::get('/test-check-expired', [App\Http\Controllers\AlatsController::class, 'checkExpired']);
 
     // Login Routes
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -49,7 +50,6 @@
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
     Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
     Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
-
 
 
     // Encrypted Redirect Routes
@@ -114,7 +114,7 @@
                 Route::get('/generate-all-qr', [SparepartsController::class, 'generateAllQrCodes']);
             });
         });
-    Route::prefix('alat')->name('alat.')->middleware('auth')->group(function () {
+    Route::prefix('alats')->name('alats.')->middleware('auth')->group(function () {
 
 
         Route::get('/', [AlatsController::class, 'index'])->name('index');
@@ -127,8 +127,10 @@
             Route::post('/', [AlatsController::class, 'store'])->name('store');
             Route::get('/{hashid}/edit', [AlatsController::class, 'edit'])->name('edit');
             Route::put('/{hashid}', [AlatsController::class, 'update'])->name('update');
+Route::get('/{hashid}/riwayat', [AlatsController::class, 'riwayat'])->name('riwayat');
             Route::delete('/{hashid}', [AlatsController::class, 'destroy'])->name('destroy');
             Route::post('/{hashid}/restore', [AlatsController::class, 'restore'])->name('restore');
+            Route::get('/riwayat-alat', [AlatsController::class, 'daftarRiwayat'])->name('daftarRiwayat');
             Route::delete('/{hashid}/force-delete', [AlatsController::class, 'forceDelete'])->name('forceDelete');
         });
 
@@ -136,7 +138,7 @@
         Route::get('/{hashid}', [AlatsController::class, 'show'])->name('show');
 
     });
-    Route::prefix('kalibrasi')->name('kalibrasi.')->group(function () {
+    Route::prefix('kalibrasis')->name('kalibrasis.')->middleware(['auth','role:admin,super'])->group(function () {
 
     Route::get('/', [KalibrasiAlatController::class, 'index'])->name('index');
     Route::get('/create/{hashid}', [KalibrasiAlatController::class, 'create'])->name('create');
@@ -174,9 +176,10 @@
             Route::put('/{hashid}', [PengembalianAlatController::class, 'update'])->name('update');
             Route::delete('/{hashid}', [PengembalianAlatController::class, 'destroy'])->name('destroy');
             Route::get('/export/pdf', [PengembalianAlatController::class, 'exportPdf'])->name('export');
+             Route::get('/export/pdf/{hashid}', [PengembalianAlatController::class, 'exportPdf'])->name('export.single');
         });
 
-        Route::prefix('kategori')->name('kategori.')->middleware(['auth','role:admin,super'])->group(function () {
+    Route::prefix('kategoris')->name('kategoris.')->middleware(['auth','role:admin,super'])->group(function () {
 
     Route::get('/', [KategoriController::class,'index'])->name('index');
 
@@ -237,7 +240,7 @@
         });
 
         // User Management Routes
-            Route::middleware('role:admin,super')->prefix('anggota')->name('admin.')->group(function () {
+            Route::prefix('anggota')->name('admin.')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('index');
             Route::get('/create', [UserController::class, 'create'])->name('create');
             Route::post('/', [UserController::class, 'store'])->name('store');
@@ -250,7 +253,7 @@
         });
 
         // Bagian Routes
-        Route::middleware('role:admin,super')->prefix('bagians')->name('bagians.')->group(function () {
+        Route::middleware('role:admin,super')->prefix('bagian')->name('bagian.')->group(function () {
             Route::get('/', [BagiansController::class, 'index'])->name('index');
             Route::get('/create', [BagiansController::class, 'create'])->name('create');
             Route::post('/', [BagiansController::class, 'store'])->name('store');

@@ -3,7 +3,7 @@
 @section('title', 'Create Sparepart')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
+    <div class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 py-6">
         <div class="w-full max-w-2xl">
             <h2 class="text-3xl font-bold text-green-700 mb-6 text-center border-b-2 border-green-200 pb-2">
                 <i class="fas fa-plus-circle mr-2"></i> Tambah Sparepart Baru
@@ -19,7 +19,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('sparepart.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4"
+            <form action="{{ route('sparepart.store') }}" method="POST"
+                class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-4"
                 id="sparepartForm">
                 @csrf
 

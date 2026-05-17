@@ -17,12 +17,14 @@ class PengambilanAlat extends Model
     protected $fillable = [
         'user_id',
         'bagian_id',
+        'nama_peminjam',
         'alat_id',
         'jumlah',
         'satuan',
         'keperluan',
         'waktu_pengambilan',
         'status',
+        'foto',
     ];
 
     protected $casts = [
@@ -66,5 +68,16 @@ class PengambilanAlat extends Model
     public function pengembalians()
 {
     return $this->hasMany(PengembalianAlat::class);
+}
+public function getFotoThumbAttribute()
+{
+    if (!$this->foto) return null;
+    return asset('storage/pengambilan/thumb_' . $this->foto);
+}
+
+public function getFotoUrlAttribute()
+{
+    if (!$this->foto) return null;
+    return asset('storage/pengambilan/' . $this->foto);
 }
 }

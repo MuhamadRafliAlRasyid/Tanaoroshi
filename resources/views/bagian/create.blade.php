@@ -1,17 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Create Bagian')
+@section('title', 'Tambah Bagian')
 
 @section('content')
-    <div class="flex items-center justify-center min-h-screen bg-gray-100 py-6">
-        <div class="w-full max-w-2xl">
-            <h2 class="text-3xl font-bold text-green-700 mb-6 text-center border-b-2 border-green-200 pb-2">
-                <i class="fas fa-plus-circle mr-2"></i>Tambah Bagian Baru
-            </h2>
+    <div class="max-w-2xl mx-auto">
+        <div
+            class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-3xl shadow-xl border border-amber-100 p-8">
+            <div class="flex items-center gap-3 mb-8">
+                <i class="fas fa-plus-circle text-3xl text-amber-600"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Tambah Bagian Baru</h2>
+            </div>
 
             @if ($errors->any())
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-md text-center">
-                    <ul class="list-disc list-inside text-sm">
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl text-sm">
+                    <ul class="list-disc list-inside space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -19,19 +21,24 @@
                 </div>
             @endif
 
-            <form action="{{ route('bagians.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-lg space-y-4">
+            <form method="POST" action="{{ route('bagian.store') }}">
                 @csrf
-
-                <div class="form-group">
-                    <label for="nama" class="block text-sm font-medium text-gray-700">Nama Bagian</label>
-                    <input type="text" id="nama" name="nama" required
-                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Bagian <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" name="nama" value="{{ old('nama') }}" required
+                        class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                        placeholder="Contoh: Bagian Umum">
                 </div>
 
-                <div class="mt-6 text-center">
+                <div class="mt-10 flex gap-4 justify-end">
+                    <a href="{{ route('bagian.index') }}"
+                        class="px-6 py-3 border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 font-medium rounded-xl transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Batal
+                    </a>
                     <button type="submit"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
-                        <i class="fas fa-save mr-2"></i>Simpan
+                        class="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition shadow-md shadow-amber-200 flex items-center gap-2">
+                        <i class="fas fa-save"></i> Simpan
                     </button>
                 </div>
             </form>

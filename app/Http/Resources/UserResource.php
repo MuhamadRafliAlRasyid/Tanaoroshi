@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
@@ -20,7 +21,9 @@ class UserResource extends JsonResource
         'profile_photo_path' => $this->profile_photo_path,
 
         // BONUS (lebih enak dipakai Flutter)
-        'profile_photo_url' => url('/images/profile/' . $this->profile_photo_path),
+        'profile_photo_url' => $this->profile_photo_path
+    ? Storage::url($this->profile_photo_path)
+    : null,
     ];
 }
 }

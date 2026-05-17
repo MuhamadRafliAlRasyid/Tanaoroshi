@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Models\Spareparts;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
@@ -68,4 +69,10 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
     ];
+    protected function schedule(Schedule $schedule)
+{
+    $schedule->call(function () {
+        app()->make(\App\Http\Controllers\AlatsController::class)->checkExpired();
+    })->dailyAt('08:00'); // jam 8 pagi
+}
 }

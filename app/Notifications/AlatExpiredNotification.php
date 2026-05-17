@@ -4,45 +4,58 @@ namespace App\Notifications;
 
 use App\Models\Alat;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class AlatExpiredNotification extends Notification
 {
     use Queueable;
 
-    protected $alat;
-    protected $status;
+    public Alat $alat;
+    public string $status;
 
     /**
-     * status = expired | warning
+     * Hanya butuh 2 parameter: alat dan status
      */
     public function __construct(Alat $alat, string $status)
     {
         $this->alat = $alat;
-        $this->status = $status;
+        $this->status = $status; // 'expired' atau 'warning'
     }
 
-    // 🔥 CHANNEL
-    public function via($notifiable)
+    public function via($notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast']; // atau ['database'] saja
     }
 
-    // 🔥 SIMPAN KE TABLE notifications
-    public function toDatabase($notifiable)
+    public function toDatabase($notifiable): array
     {
+        $nama = $this->alat->nama_alat;
+        $waktu = $this->alat->masa_berlaku?->format('d M Y') ?? '-';
+
+        $message = match($this->status) {
+            'expired' => "Masa berlaku alat **{$nama}** sudah berakhir ({$waktu}).",
+            'warning' => "Masa berlaku alat **{$nama}** akan berakhir ({$waktu}).",
+            default   => "Notifikasi alat."
+        };
+
         return [
-            'alat_id' => $this->alat->id,
-            'hashid' => $this->alat->hashid,
-
-            'nama_alat' => $this->alat->nama_alat,
-            'kode' => $this->alat->no_identitas ?? $this->alat->no_seri,
-
-            'masa_berlaku' => $this->alat->masa_berlaku,
-            'status' => $this->status, // expired / warning
-
-            // 🔥 LINK KE HALAMAN DETAIL
+            'type'       => 'alat_kalibrasi',
+            'alat_id'    => $this->alat->id,
+            'nama_alat'  => $this->alat->nama_alat,
+            'status'     => $this->status,
+            'message'    => $message,
             'action_url' => route('alat.show', $this->alat->hashid),
         ];
+    }
+
+    public function toBroadcast($notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'alat_id'   => $this->alat->id,
+            'nama_alat' => $this->alat->nama_alat,
+            'status'    => $this->status,
+            'message'   => $this->toDatabase($notifiable)['message'],
+        ]);
     }
 }

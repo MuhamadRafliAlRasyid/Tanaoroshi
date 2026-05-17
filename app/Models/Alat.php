@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Pengambilan;
 use App\Models\Traits\HasHashId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,59 +25,74 @@ class Alat extends Model
         'masa_berlaku',
         'kategori_id',
         'qr_code',
+        'foto',
+        'last_notified_at',
     ];
 
-    protected $appends = ['hashid','status'];
+    protected $appends = ['hashid', 'status'];
 
     protected $casts = [
         'masa_berlaku' => 'date',
     ];
 
-    // ================= RELASI =================
+    // Relasi
     public function kategori()
     {
         return $this->belongsTo(Kategori::class);
     }
 
-    // 🔥 kalau nanti ada tabel pengambilan alat
     public function pengambilan()
     {
-        return $this->hasMany(Pengambilan::class);
+        return $this->hasMany(PengambilanAlat::class);
     }
 
     public function pengembalian()
     {
-        return $this->hasMany(Pengembalian::class);
+        return $this->hasMany(PengembalianAlat::class);
     }
-    public function getLabelAttribute()
-{
-    return "{$this->nama_alat} | {$this->merk} | {$this->tipe} | {$this->no_seri}";
-}
 
-    // ================= STATUS =================
+    public function kalibrasis()
+    {
+        return $this->hasMany(KalibrasiAlat::class);
+    }
+
+    // Accessor
+    public function getLabelAttribute()
+    {
+        return "{$this->nama_alat} | {$this->merk} | {$this->tipe} | {$this->no_seri}";
+    }
+
     public function getStatusAttribute()
     {
         if (!$this->masa_berlaku) return 'unknown';
-
         if ($this->masa_berlaku < now()) return 'expired';
-
         if ($this->masa_berlaku <= now()->addDays(7)) return 'warning';
-
         return 'ok';
     }
-public function kalibrasis()
-{
-    return $this->hasMany(KalibrasiAlat::class);
-}
-    // ================= SEARCH =================
+
+    // ✅ Accessor thumbnail (sudah diperbaiki)
+    public function getFotoThumbAttribute()
+    {
+        if (!$this->foto) return null;
+        return asset('storage/alat/thumb/' . $this->foto);
+    }
+
+    // ✅ Accessor foto asli
+    public function getFotoUrlAttribute()
+    {
+        if (!$this->foto) return null;
+        return asset('storage/alat/' . $this->foto);
+    }
+
+    // Scope
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($q) use ($search) {
-            $q->where('nama_alat','like',"%$search%")
-              ->orWhere('merk','like',"%$search%")
-              ->orWhere('tipe','like',"%$search%")
-              ->orWhere('no_seri','like',"%$search%")
-              ->orWhere('no_identitas','like',"%$search%");
+            $q->where('nama_alat', 'like', "%$search%")
+              ->orWhere('merk', 'like', "%$search%")
+              ->orWhere('tipe', 'like', "%$search%")
+              ->orWhere('no_seri', 'like', "%$search%")
+              ->orWhere('no_identitas', 'like', "%$search%");
         });
     }
 }

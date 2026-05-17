@@ -3,108 +3,107 @@
 @section('title', 'Tambah User')
 
 @section('content')
-    <main class="p-6 flex flex-col items-center space-y-8">
-        <section
-            class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 hover:shadow-3xl">
-            <h1 class="text-2xl font-semibold text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-3 flex items-center">
-                <i class="fas fa-user-plus mr-2 text-indigo-600"></i> Tambah User
-            </h1>
+    <div class="max-w-4xl mx-auto">
+        <div
+            class="bg-white dark:bg-gray-800 dark:bg-gray-800 dark:bg-gray-800 rounded-3xl shadow-xl border border-amber-100 p-8">
+            <div class="flex items-center gap-3 mb-8">
+                <i class="fas fa-user-plus text-3xl text-amber-600"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Tambah User Baru</h2>
+            </div>
 
-            <form action="{{ route('admin.store') }}" method="POST" enctype="multipart/form-data"
-                class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
+            <form method="POST" action="{{ route('admin.store') }}" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Foto Profil -->
-                <div class="col-span-full flex items-center gap-6 mb-6">
-                    <img id="current_photo" alt="User profile"
-                        class="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
-                        src="{{ asset('images/avatar.png') }}" />
+                {{-- Foto Profil --}}
+                <div class="flex items-center gap-6 mb-8">
+                    <img id="preview_photo" src="{{ asset('images/avatar.png') }}"
+                        class="w-20 h-20 rounded-2xl object-cover border-2 border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700"
+                        alt="Preview" />
                     <label for="profile_photo"
-                        class="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 cursor-pointer transition">
-                        <i class="fas fa-upload"></i> Ganti Foto
+                        class="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2.5 rounded-xl hover:bg-amber-100 cursor-pointer transition font-medium text-sm">
+                        <i class="fas fa-camera"></i> Ganti Foto
                     </label>
                     <input id="profile_photo" name="profile_photo" type="file" class="hidden" accept="image/*">
                 </div>
 
-                <!-- Nama -->
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input id="name" name="name" type="text" required value="{{ old('name') }}"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input id="email" name="email" type="email" required value="{{ old('email') }}"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-
-                <!-- Password -->
-                <div x-data="{ showPassword: false }" class="relative">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <div class="relative">
-                        <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                            placeholder="Masukkan password" />
-                        <button type="button" @click="showPassword = !showPassword"
-                            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
-                            <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                        </button>
-                    </div>
-                </div>
-
-                @if (auth()->user()->role === 'admin')
-                    <!-- Bagian -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="bagian_id" class="block text-sm font-medium text-gray-700 mb-1">Bagian</label>
-                        <select id="bagian_id" name="bagian_id"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">- Pilih Bagian -</option>
-                            @foreach ($bagians as $bagian)
-                                <option value="{{ $bagian->id }}">{{ $bagian->nama }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name') }}" required
+                            class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition">
                     </div>
-
-                    <!-- Role -->
                     <div>
-                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                        <select id="role" name="role" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @foreach (['admin', 'karyawan', 'super'] as $role)
-                                <option value="{{ $role }}">{{ ucfirst($role) }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email <span
+                                class="text-red-500">*</span></label>
+                        <input type="email" name="email" value="{{ old('email') }}" required
+                            class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition">
                     </div>
-                @endif
 
-                <div class="col-span-full flex items-center gap-4 mt-6">
-                    <button type="submit"
-                        class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition flex items-center">
-                        <i class="fas fa-save mr-2"></i> Simpan
-                    </button>
+                    <div x-data="{ show: false }">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Password <span
+                                class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" name="password" required
+                                class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                                placeholder="Minimal 8 karakter">
+                            <button type="button" @click="show = !show"
+                                class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
+                                <i :class="show ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (auth()->user()->role === 'admin')
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Bagian</label>
+                            <select name="bagian_id"
+                                class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition">
+                                <option value="">-- Pilih Bagian --</option>
+                                @foreach ($bagians as $bagian)
+                                    <option value="{{ $bagian->id }}">{{ $bagian->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Role <span
+                                    class="text-red-500">*</span></label>
+                            <select name="role" required
+                                class="w-full border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition">
+                                @foreach (['admin', 'karyawan', 'super'] as $role)
+                                    <option value="{{ $role }}">{{ ucfirst($role) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="mt-10 flex gap-4 justify-end">
                     <a href="{{ route('admin.index') }}"
-                        class="text-gray-600 font-semibold hover:text-blue-600 transition flex items-center">
-                        <i class="fas fa-times mr-2"></i> Batal
+                        class="px-6 py-3 border border-gray-200 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-900 font-medium rounded-xl transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Batal
                     </a>
+                    <button type="submit"
+                        class="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition shadow-md shadow-amber-200 flex items-center gap-2">
+                        <i class="fas fa-save"></i> Simpan User
+                    </button>
                 </div>
             </form>
-        </section>
-    </main>
+        </div>
+    </div>
+@endsection
 
+@push('scripts')
     <script>
-        document.getElementById('profile_photo').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('current_photo');
-
+        document.getElementById('profile_photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
+                reader.onload = function(ev) {
+                    document.getElementById('preview_photo').src = ev.target.result;
                 };
                 reader.readAsDataURL(file);
             }
         });
     </script>
-@endsection
+@endpush
